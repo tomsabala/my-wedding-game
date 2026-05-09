@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum GameStatus {
+  DRAFT
+  LIVE
+}
+
+enum PassingCardType {
+  DID_YOU_KNOW
+  PHOTO
+  VIDEO
+}
+
+model Game {
+  id           String     @id @default(uuid())
+  userId       String     @map("user_id")
+  slug         String     @unique
+  coupleNames  String     @map("couple_names")
+  weddingDate  DateTime   @map("wedding_date") @db.Date
+  tagline      String?
+  status       GameStatus @default(DRAFT)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  questions    Question[]
+  passingCards PassingCard[]
+  players      Player[]
+
+  @@map("games")
+}
+
+model Question {
+  id           String   @id @default(uuid())
+  gameId       String   @map("game_id")
+  text         String
+  options      Json
+  correctIndex Int      @map("correct_index")
+  position     Int
+
+  game         Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  answers      PlayerAnswer[]
+
+  @@map("questions")
+}
+
+model PassingCard {
+  id                    String          @id @default(uuid())
+  gameId                String          @map("game_id")
+  type                  PassingCardType
+  content               String
+  afterQuestionPosition Int?            @map("after_question_position")
+
+  game                  Game            @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@map("passing_cards")
+}
+
+model Player {
+  id          String    @id @default(uuid())
+  gameId      String    @map("game_id")
+  displayName String    @map("display_name")
+  score       Int       @default(0)
+  finishedAt  DateTime? @map("finished_at")
+
+  game        Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  answers     PlayerAnswer[]
+
+  @@map("players")
+}
+
+model PlayerAnswer {
+  id            String   @id @default(uuid())
+  playerId      String   @map("player_id")
+  questionId    String   @map("question_id")
+  selectedIndex Int      @map("selected_index")
+  isCorrect     Boolean  @map("is_correct")
+  timeTakenMs   Int      @map("time_taken_ms")
+
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("player_answers")
+}

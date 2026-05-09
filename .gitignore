@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+.next/
+out/
+dist/
+build/
+**/*.tsbuildinfo
+
+# Turborepo cache
+.turbo/
+
+# Environment secrets
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# Vercel local config
+.vercel/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
