@@ -29,7 +29,7 @@ export default async function DashboardPage() {
           {t('gamesTitle')}
         </h1>
         <Link href="/dashboard/games/new">
-          <Button style={{ background: 'white', color: '#111', border: 'none', fontWeight: 700 }}>
+          <Button style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', fontWeight: 600 }}>
             {t('createGame')}
           </Button>
         </Link>
