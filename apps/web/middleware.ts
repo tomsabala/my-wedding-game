@@ -37,9 +37,13 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup')
+  const isAuthRoute =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup') ||
+    pathname.startsWith('/forgot-password')
   const isSlugRoute = SLUG_RE.test(pathname)
-  const isPublicRoute = pathname === '/' || isAuthRoute || isSlugRoute
+  const isPublicRoute =
+    pathname === '/' || isAuthRoute || isSlugRoute || pathname.startsWith('/auth/callback')
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()

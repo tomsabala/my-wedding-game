@@ -1,51 +1,39 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { Button } from '@/components/ui/button'
-import { getGames } from '@/app/actions/games'
-import GameCard from './_components/GameCard'
+import CreateGameForm from './_components/CreateGameForm'
 
-export default async function DashboardPage() {
+export default async function NewGamePage() {
   const t = await getTranslations('dashboard')
-  const games = await getGames()
+  const tForm = await getTranslations('dashboard.createForm')
 
   return (
     <div
-      className="rounded-2xl"
+      className="mx-auto max-w-lg rounded-2xl"
       style={{
         background: 'rgba(255,255,255,0.12)',
         border: '1px solid rgba(255,255,255,0.25)',
         backdropFilter: 'blur(8px)',
-        padding: 'var(--dashboard-card-padding)',
+        padding: '32px',
       }}
     >
       <div className="mb-6 flex items-center justify-between">
         <h1
+          className="tracking-tight text-white"
           style={{
             fontSize: 'var(--dashboard-heading-size)',
             fontWeight: 'var(--dashboard-heading-weight)',
           }}
-          className="tracking-tight text-white"
         >
-          {t('gamesTitle')}
+          {tForm('title')}
         </h1>
-        <Link href="/dashboard/games/new">
+        <Link href="/dashboard">
           <Button style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', fontWeight: 600 }}>
-            {t('createGame')}
+            {t('back')}
           </Button>
         </Link>
       </div>
-
-      {games.length === 0 ? (
-        <div className="flex items-center justify-center" style={{ minHeight: '40vh' }}>
-          <p className="text-center text-white/70">{t('empty')}</p>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {games.map((game) => (
-            <GameCard key={game.id} game={game} />
-          ))}
-        </div>
-      )}
+      <CreateGameForm />
     </div>
   )
 }

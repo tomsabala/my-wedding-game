@@ -1,7 +1,5 @@
+import DashboardShell from './_components/DashboardShell'
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-screen flex-col">
-      {children}
-    </div>
-  )
+  return <DashboardShell>{children}</DashboardShell>
 }
