@@ -30,7 +30,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-nunito);
   --font-mono: var(--font-geist-mono);
   --radius-md: var(--radius-md);
 }
@@ -55,6 +55,24 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+}
+
+/* ─── Dashboard design tokens ─────────────────────────────────────────────── */
+:root {
+  --dashboard-nav-height: 60px;
+  --dashboard-page-padding: 24px;
+
+  --dashboard-heading-size: 20px;
+  --dashboard-heading-weight: 800;
+  --dashboard-subheading-size: 16px;
+  --dashboard-subheading-weight: 700;
+  --dashboard-body-size: 14px;
+  --dashboard-label-size: 13px;
+  --dashboard-small-size: 12px;
+
+  --dashboard-card-radius: 12px;
+  --dashboard-card-shadow: 0 6px 30px rgba(0, 0, 0, 0.13), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --dashboard-card-padding: 20px;
 }
 
 /* ─── Auth page design tokens ──────────────────────────────────────────────── */

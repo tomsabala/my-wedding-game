@@ -45,32 +45,32 @@ export const submitScoreSchema = z.object({
 })
 
 export const loginSchema = z.object({
-  email: z.string().email('auth.errors.emailInvalid'),
-  password: z.string().min(8, 'auth.errors.passwordTooShort'),
+  email: z.string().email('emailInvalid'),
+  password: z.string().min(8, 'passwordTooShort'),
 })
 
 export const signupSchema = z
   .object({
-    email: z.string().email('auth.errors.emailInvalid'),
-    password: z.string().min(8, 'auth.errors.passwordTooShort'),
+    email: z.string().email('emailInvalid'),
+    password: z.string().min(8, 'passwordTooShort'),
     confirmPassword: z.string(),
   })
   .refine((d) => d.password === d.confirmPassword, {
-    message: 'auth.errors.passwordsMismatch',
+    message: 'passwordsMismatch',
     path: ['confirmPassword'],
   })
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email('auth.errors.emailInvalid'),
+  email: z.string().email('emailInvalid'),
 })
 
 export const resetPasswordSchema = z
   .object({
-    password: z.string().min(8, 'auth.errors.passwordTooShort'),
+    password: z.string().min(8, 'passwordTooShort'),
     confirmPassword: z.string(),
   })
   .refine((d) => d.password === d.confirmPassword, {
-    message: 'auth.errors.passwordsMismatch',
+    message: 'passwordsMismatch',
     path: ['confirmPassword'],
   })
 

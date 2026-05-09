@@ -44,5 +44,51 @@
       "passwordTooShort": "הסיסמה חייבת להכיל לפחות 8 תווים",
       "passwordsMismatch": "הסיסמאות אינן תואמות"
     }
+  },
+  "dashboard": {
+    "gamesTitle": "המשחקים שלי",
+    "createGame": "צור משחק",
+    "empty": "אין משחקים בשלב זה",
+    "status": { "draft": "טיוטה", "live": "פעיל" },
+    "players": "שחקנים",
+    "editGame": "ערוך משחק",
+    "back": "חזרה",
+    "deploy": {
+      "button": "פרסם משחק",
+      "undeploy": "הורד מהאוויר",
+      "notEnoughQuestions": "דרושות לפחות 3 שאלות לפרסום",
+      "slugError": "שגיאה ביצירת קישור ייחודי, נסה שוב",
+      "copyLink": "העתק קישור",
+      "linkCopied": "הועתק!",
+      "downloadQr": "הורד QR",
+      "preview": "תצוגה מקדימה"
+    },
+    "stats": {
+      "totalPlayers": "שחקנים סה\"כ",
+      "avgScore": "ציון ממוצע",
+      "topPlayer": "שחקן מוביל",
+      "questionAccuracy": "דיוק לפי שאלה",
+      "correct": "נכון",
+      "outOf": "מתוך"
+    },
+    "createForm": {
+      "title": "משחק חדש",
+      "coupleNames": "שמות הזוג",
+      "coupleNamesPlaceholder": "לדוגמה: דנה ויואב",
+      "weddingDate": "תאריך החתונה",
+      "tagline": "תגית (אופציונלי)",
+      "taglinePlaceholder": "משהו קצר ומרגש...",
+      "submit": "צור משחק",
+      "errors": {
+        "coupleNamesRequired": "שם הזוג הוא שדה חובה",
+        "weddingDateRequired": "תאריך החתונה הוא שדה חובה",
+        "taglineTooLong": "התגית ארוכה מדי"
+      }
+    },
+    "preview": {
+      "title": "תצוגה מקדימה",
+      "comingSoon": "תצוגה מקדימה תגיע בקרוב",
+      "back": "חזרה"
+    }
   }
 }
