@@ -1,4 +1,4 @@
-# My Wedding Game
+# Our Wedding Game
 
 A mobile-first web platform where couples create a personalised wedding trivia game with questions, memory cards, QR sharing, guest participation, and a final leaderboard.
 

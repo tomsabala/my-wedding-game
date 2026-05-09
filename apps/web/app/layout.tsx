@@ -22,7 +22,7 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
-  title: 'My Wedding Game',
+  title: 'Our Wedding Game',
   description: 'צרו את משחק הטריוויה המותאם אישית לחתונה שלכם.',
 }
 
