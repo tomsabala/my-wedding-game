@@ -1,0 +1,48 @@
+{
+  "auth": {
+    "common": {
+      "or": "או",
+      "continueWithGoogle": "המשך עם Google",
+      "email": "אימייל",
+      "emailPlaceholder": "you@example.com",
+      "password": "סיסמה",
+      "backToSignIn": "חזרה להתחברות"
+    },
+    "login": {
+      "title": "ברוכים השבים",
+      "noAccount": "אין לך חשבון?",
+      "signUpLink": "הירשם",
+      "forgotPassword": "שכחת סיסמה?",
+      "submit": "התחברות"
+    },
+    "signup": {
+      "title": "יצירת חשבון",
+      "hasAccount": "יש לך כבר חשבון?",
+      "signInLink": "התחבר",
+      "confirmPassword": "אישור סיסמה",
+      "submit": "יצירת חשבון",
+      "successTitle": "בדוק את תיבת הדואר שלך",
+      "successMessage": "שלחנו לך קישור אישור לכתובת המייל שלך. לחץ עליו כדי להפעיל את חשבונך."
+    },
+    "forgotPassword": {
+      "title": "איפוס סיסמה",
+      "description": "הזן את המייל שלך ונשלח לך קישור לאיפוס.",
+      "submit": "שליחת קישור איפוס",
+      "successTitle": "בדוק את תיבת הדואר שלך",
+      "successMessage": "אם המייל קיים במערכת, תקבל קישור לאיפוס הסיסמה בקרוב."
+    },
+    "resetPassword": {
+      "title": "בחירת סיסמה חדשה",
+      "description": "חייב להכיל לפחות 8 תווים.",
+      "newPassword": "סיסמה חדשה",
+      "confirmPassword": "אישור סיסמה",
+      "submit": "עדכון סיסמה",
+      "requestNewLink": "בקש קישור איפוס חדש"
+    },
+    "errors": {
+      "emailInvalid": "כתובת מייל לא תקינה",
+      "passwordTooShort": "הסיסמה חייבת להכיל לפחות 8 תווים",
+      "passwordsMismatch": "הסיסמאות אינן תואמות"
+    }
+  }
+}

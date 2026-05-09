@@ -1,26 +1,181 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --radius-md: 6px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --radius-md: var(--radius-md);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --primary: oklch(0.985 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --border: oklch(0.269 0 0);
+    --input: oklch(0.269 0 0);
+    --ring: oklch(0.439 0 0);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+}
+
+/* ─── Auth page design tokens ──────────────────────────────────────────────── */
+:root {
+  --auth-font-family: var(--font-nunito, 'Nunito', sans-serif);
+  --auth-heading-size: 23px;
+  --auth-heading-weight: 600;
+  --auth-body-size: 14px;
+  --auth-label-size: 13px;
+  --auth-letter-spacing: 0px;
+
+  --auth-input-radius: 8px;
+  --auth-input-height: 42px;
+  --auth-input-padding: 12px;
+  --auth-input-border-width: 1px;
+  --auth-input-border-color: #ffffff;
+  --auth-input-font-size: 15px;
+
+  --auth-btn-radius: 8px;
+  --auth-btn-height: 42px;
+  --auth-btn-weight: 600;
+  --auth-btn-font-size: 14px;
+  --auth-btn-letter-spacing: 0px;
+
+  --auth-card-radius: 16px;
+  --auth-card-padding: 32px;
+  --auth-card-shadow: 0 20px 60px rgba(0, 0, 0, 0.22), 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  --auth-heading-color: #ffffff;
+  --auth-body-color: #ffffff;
+  --auth-link-color: #000000;
+  --auth-error-color: #ff0000;
+  --auth-placeholder-color: #ffffff;
+}
+
+/* ─── Auth form scope ──────────────────────────────────────────────────────── */
+/* Unlayered rules beat Tailwind @layer utilities — no !important needed.      */
+.auth-form {
+  font-family: var(--auth-font-family);
+}
+
+.auth-form h1,
+.auth-form h2 {
+  font-size: var(--auth-heading-size);
+  font-weight: var(--auth-heading-weight);
+  color: var(--auth-heading-color);
+  letter-spacing: var(--auth-letter-spacing);
+}
+
+.auth-form p {
+  font-size: var(--auth-body-size);
+  color: var(--auth-body-color);
+}
+
+.auth-form a {
+  color: var(--auth-link-color);
+}
+
+.auth-form [data-slot="label"] {
+  font-size: var(--auth-label-size);
+  color: var(--auth-heading-color);
+}
+
+.auth-form [data-slot="input"] {
+  height: var(--auth-input-height);
+  border-radius: var(--auth-input-radius);
+  padding-inline-start: var(--auth-input-padding);
+  padding-inline-end: var(--auth-input-padding);
+  border-width: var(--auth-input-border-width);
+  border-color: var(--auth-input-border-color);
+  font-size: var(--auth-input-font-size);
+  font-family: var(--auth-font-family);
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--auth-heading-color);
+}
+
+.auth-form [data-slot="input"]::placeholder {
+  color: var(--auth-placeholder-color);
+  opacity: 0.75;
+}
+
+.auth-form [data-slot="input"]:focus {
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+  outline: none;
+}
+
+/* Primary submit button */
+.auth-form [data-slot="button"][type="submit"] {
+  height: var(--auth-btn-height);
+  border-radius: var(--auth-btn-radius);
+  font-weight: var(--auth-btn-weight);
+  font-size: var(--auth-btn-font-size);
+  letter-spacing: var(--auth-btn-letter-spacing);
+  font-family: var(--auth-font-family);
+  background: rgba(0, 0, 0, 0.82);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.auth-form [data-slot="button"][type="submit"]:hover {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+/* Google / outline button */
+.auth-form [data-slot="button"][type="button"] {
+  height: var(--auth-btn-height);
+  border-radius: var(--auth-btn-radius);
+  font-weight: var(--auth-btn-weight);
+  font-size: var(--auth-btn-font-size);
+  font-family: var(--auth-font-family);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.55);
+  color: var(--auth-link-color);
+}
+
+.auth-form [data-slot="button"][type="button"]:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+/* Error messages */
+.auth-form .text-destructive {
+  color: var(--auth-error-color);
 }

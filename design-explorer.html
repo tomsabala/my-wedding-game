@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auth Design Explorer — My Wedding Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=Nunito:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ui-bg: #0f0f11;
+  --ui-surface: #1a1a1f;
+  --ui-border: #2a2a35;
+  --ui-text: #e8e8f0;
+  --ui-muted: #888899;
+  --ui-accent: #7c6fff;
+  --ui-accent-dim: #7c6fff22;
+}
+
+body {
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--ui-border);
+  flex-shrink: 0;
+  gap: 12px;
+}
+header h1 { font-size: 13px; font-weight: 600; color: var(--ui-text); letter-spacing: .02em; }
+header span { color: var(--ui-muted); font-size: 12px; }
+
+.presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.preset-btn {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  color: var(--ui-muted);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: inherit;
+  transition: all .15s;
+}
+.preset-btn:hover { border-color: var(--ui-accent); color: var(--ui-text); background: var(--ui-accent-dim); }
+.preset-btn.active { border-color: var(--ui-accent); color: var(--ui-accent); background: var(--ui-accent-dim); }
+
+/* ── Main ── */
+main {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Controls ── */
+.controls {
+  border-right: 1px solid var(--ui-border);
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.section {
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.section-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ui-muted);
+  background: var(--ui-surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+.section-header:hover { color: var(--ui-text); }
+.section-header .arrow { transition: transform .2s; }
+.section-content { padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+.section-content.collapsed { display: none; }
+
+.control { display: flex; flex-direction: column; gap: 4px; }
+.control label {
+  font-size: 11px;
+  color: var(--ui-muted);
+  display: flex;
+  justify-content: space-between;
+}
+.control label span { color: var(--ui-text); font-variant-numeric: tabular-nums; }
+
+input[type=range] {
+  width: 100%;
+  accent-color: var(--ui-accent);
+  height: 4px;
+  cursor: pointer;
+}
+select {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  color: var(--ui-text);
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: inherit;
+  width: 100%;
+  cursor: pointer;
+}
+select:focus { outline: none; border-color: var(--ui-accent); }
+
+.color-row { display: flex; gap: 8px; align-items: center; }
+.color-row input[type=color] {
+  width: 32px; height: 28px;
+  border: 1px solid var(--ui-border);
+  border-radius: 5px;
+  padding: 2px;
+  background: var(--ui-surface);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.color-row code {
+  font-size: 11px;
+  color: var(--ui-muted);
+  font-family: monospace;
+}
+
+/* ── Preview pane ── */
+.preview-pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.preview-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  transition: background-color .3s;
+}
+
+.reshuffle-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  backdrop-filter: blur(4px);
+  transition: background .15s;
+  z-index: 10;
+}
+.reshuffle-btn:hover { background: rgba(0,0,0,.55); }
+
+/* ── Output ── */
+.output-pane {
+  border-top: 1px solid var(--ui-border);
+  padding: 10px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  flex-shrink: 0;
+  background: var(--ui-surface);
+  max-height: 130px;
+}
+
+.output-text {
+  flex: 1;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--ui-muted);
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  max-height: 108px;
+}
+
+.copy-btn {
+  background: var(--ui-accent);
+  border: none;
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-weight: 600;
+  transition: opacity .15s;
+}
+.copy-btn:hover { opacity: .85; }
+.copy-btn.copied { background: #22c55e; }
+
+/* ── Form preview styles (applied via JS) ── */
+#preview-card {
+  width: 340px;
+  transition: background .3s, box-shadow .3s, border-radius .2s, padding .2s;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:10px">
+    <h1>Auth Design Explorer</h1>
+    <span>My Wedding Game</span>
+  </div>
+  <div class="presets">
+    <button class="preset-btn active" onclick="applyPreset('modern')">מודרני</button>
+    <button class="preset-btn" onclick="applyPreset('elegant')">אלגנטי</button>
+    <button class="preset-btn" onclick="applyPreset('rounded')">עגול</button>
+    <button class="preset-btn" onclick="applyPreset('minimal')">עדין</button>
+    <button class="preset-btn" onclick="applyPreset('bold')">מרשים</button>
+  </div>
+</header>
+
+<main>
+  <!-- Controls -->
+  <div class="controls">
+
+    <div class="section" id="sec-typo">
+      <div class="section-header" onclick="toggleSection('typo')">
+        Typography <span class="arrow" id="arrow-typo">▾</span>
+      </div>
+      <div class="section-content" id="content-typo">
+        <div class="control">
+          <label>Font family</label>
+          <select id="fontFamily" onchange="update()">
+            <option value="'Geist', system-ui, sans-serif">Geist (current)</option>
+            <option value="'Frank Ruhl Libre', serif">Frank Ruhl Libre (Hebrew)</option>
+            <option value="'Nunito', sans-serif">Nunito (rounded)</option>
+            <option value="'Playfair Display', serif">Playfair Display (elegant)</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Heading size <span id="val-headingSize">22px</span></label>
+          <input type="range" id="headingSize" min="16" max="36" value="22" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Heading weight <span id="val-headingWeight">600</span></label>
+          <input type="range" id="headingWeight" min="300" max="900" step="100" value="600" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Body / subtitle size <span id="val-bodySize">14px</span></label>
+          <input type="range" id="bodySize" min="11" max="18" value="14" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Label size <span id="val-labelSize">13px</span></label>
+          <input type="range" id="labelSize" min="10" max="16" value="13" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Letter spacing <span id="val-letterSpacing">0px</span></label>
+          <input type="range" id="letterSpacing" min="-1" max="3" step="0.25" value="0" oninput="update()">
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="sec-inputs">
+      <div class="section-header" onclick="toggleSection('inputs')">
+        Input Fields <span class="arrow" id="arrow-inputs">▾</span>
+      </div>
+      <div class="section-content" id="content-inputs">
+        <div class="control">
+          <label>Border radius <span id="val-inputRadius">8px</span></label>
+          <input type="range" id="inputRadius" min="0" max="28" value="8" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Height <span id="val-inputHeight">42px</span></label>
+          <input type="range" id="inputHeight" min="32" max="56" value="42" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Horizontal padding <span id="val-inputPadding">12px</span></label>
+          <input type="range" id="inputPadding" min="6" max="24" value="12" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Border width <span id="val-borderWidth">1px</span></label>
+          <input type="range" id="borderWidth" min="1" max="3" value="1" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Border color</label>
+          <div class="color-row">
+            <input type="color" id="inputBorderColor" value="#d4d4d8" oninput="update()">
+            <code id="val-inputBorderColor">#d4d4d8</code>
+          </div>
+        </div>
+        <div class="control">
+          <label>Focus ring style</label>
+          <select id="focusRing" onchange="update()">
+            <option value="ring">Offset ring</option>
+            <option value="glow">Glow / shadow</option>
+            <option value="border">Thick border only</option>
+            <option value="none">None</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Font size <span id="val-inputFontSize">15px</span></label>
+          <input type="range" id="inputFontSize" min="12" max="18" value="15" oninput="update()">
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="sec-buttons">
+      <div class="section-header" onclick="toggleSection('buttons')">
+        Buttons <span class="arrow" id="arrow-buttons">▾</span>
+      </div>
+      <div class="section-content" id="content-buttons">
+        <div class="control">
+          <label>Border radius <span id="val-btnRadius">8px</span></label>
+          <input type="range" id="btnRadius" min="0" max="28" value="8" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Height <span id="val-btnHeight">42px</span></label>
+          <input type="range" id="btnHeight" min="32" max="56" value="42" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Font weight <span id="val-btnWeight">600</span></label>
+          <input type="range" id="btnWeight" min="400" max="800" step="100" value="600" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Font size <span id="val-btnFontSize">14px</span></label>
+          <input type="range" id="btnFontSize" min="12" max="18" value="14" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Letter spacing <span id="val-btnLetterSpacing">0px</span></label>
+          <input type="range" id="btnLetterSpacing" min="-1" max="3" step="0.25" value="0" oninput="update()">
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="sec-card">
+      <div class="section-header" onclick="toggleSection('card')">
+        Card <span class="arrow" id="arrow-card">▾</span>
+      </div>
+      <div class="section-content" id="content-card">
+        <div class="control">
+          <label>Border radius <span id="val-cardRadius">16px</span></label>
+          <input type="range" id="cardRadius" min="0" max="40" value="16" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Padding <span id="val-cardPadding">32px</span></label>
+          <input type="range" id="cardPadding" min="16" max="56" value="32" oninput="update()">
+        </div>
+        <div class="control">
+          <label>Shadow</label>
+          <select id="cardShadow" onchange="update()">
+            <option value="none">None</option>
+            <option value="soft">Soft</option>
+            <option value="medium" selected>Medium</option>
+            <option value="dramatic">Dramatic</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Ring / border</label>
+          <select id="cardRing" onchange="update()">
+            <option value="none">None</option>
+            <option value="subtle" selected>Subtle (black/5)</option>
+            <option value="solid">Solid border</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="sec-colors">
+      <div class="section-header" onclick="toggleSection('colors')">
+        Text Colors <span class="arrow" id="arrow-colors">▾</span>
+      </div>
+      <div class="section-content" id="content-colors">
+        <div class="control">
+          <label>Heading</label>
+          <div class="color-row">
+            <input type="color" id="headingColor" value="#18181b" oninput="update()">
+            <code id="val-headingColor">#18181b</code>
+          </div>
+        </div>
+        <div class="control">
+          <label>Body / muted</label>
+          <div class="color-row">
+            <input type="color" id="bodyColor" value="#71717a" oninput="update()">
+            <code id="val-bodyColor">#71717a</code>
+          </div>
+        </div>
+        <div class="control">
+          <label>Link</label>
+          <div class="color-row">
+            <input type="color" id="linkColor" value="#18181b" oninput="update()">
+            <code id="val-linkColor">#18181b</code>
+          </div>
+        </div>
+        <div class="control">
+          <label>Error</label>
+          <div class="color-row">
+            <input type="color" id="errorColor" value="#dc2626" oninput="update()">
+            <code id="val-errorColor">#dc2626</code>
+          </div>
+        </div>
+        <div class="control">
+          <label>Placeholder</label>
+          <div class="color-row">
+            <input type="color" id="placeholderColor" value="#a1a1aa" oninput="update()">
+            <code id="val-placeholderColor">#a1a1aa</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Preview -->
+  <div class="preview-pane">
+    <div class="preview-area" id="previewArea">
+      <button class="reshuffle-btn" onclick="reshuffleColors()">🎲 Reshuffle colors</button>
+      <div id="preview-card">
+        <!-- injected by JS -->
+      </div>
+    </div>
+
+    <div class="output-pane">
+      <pre class="output-text" id="outputText"></pre>
+      <button class="copy-btn" id="copyBtn" onclick="copyOutput()">Copy CSS vars</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const PALETTE = ['#FF6B6B','#FFA552','#E8C840','#6DB87A','#6B9FFF','#A78BFA'];
+let bgColor = '#6B9FFF';
+let cardColor = '#FF6B6B';
+
+function pickTwoDifferent() {
+  const bi = Math.floor(Math.random() * PALETTE.length);
+  let ci = (bi + 1 + Math.floor(Math.random() * (PALETTE.length - 1))) % PALETTE.length;
+  return [PALETTE[bi], PALETTE[ci]];
+}
+
+[bgColor, cardColor] = pickTwoDifferent();
+
+function reshuffleColors() {
+  [bgColor, cardColor] = pickTwoDifferent();
+  update();
+}
+
+// ── Presets ──────────────────────────────────────────────────────────────────
+const PRESETS = {
+  modern: {
+    fontFamily: "'Geist', system-ui, sans-serif",
+    headingSize: 22, headingWeight: 600, bodySize: 14, labelSize: 13, letterSpacing: 0,
+    inputRadius: 8, inputHeight: 42, inputPadding: 12, borderWidth: 1,
+    inputBorderColor: '#d4d4d8', focusRing: 'ring', inputFontSize: 15,
+    btnRadius: 8, btnHeight: 42, btnWeight: 600, btnFontSize: 14, btnLetterSpacing: 0,
+    cardRadius: 16, cardPadding: 32, cardShadow: 'medium', cardRing: 'subtle',
+    headingColor: '#18181b', bodyColor: '#71717a', linkColor: '#18181b',
+    errorColor: '#dc2626', placeholderColor: '#a1a1aa',
+  },
+  elegant: {
+    fontFamily: "'Playfair Display', serif",
+    headingSize: 26, headingWeight: 700, bodySize: 14, labelSize: 12, letterSpacing: 0.5,
+    inputRadius: 4, inputHeight: 44, inputPadding: 14, borderWidth: 1,
+    inputBorderColor: '#c8b8a2', focusRing: 'border', inputFontSize: 15,
+    btnRadius: 4, btnHeight: 44, btnWeight: 700, btnFontSize: 13, btnLetterSpacing: 1.5,
+    cardRadius: 8, cardPadding: 40, cardShadow: 'dramatic', cardRing: 'none',
+    headingColor: '#1c1006', bodyColor: '#7a6a55', linkColor: '#8a6f3e',
+    errorColor: '#c0392b', placeholderColor: '#c8b8a2',
+  },
+  rounded: {
+    fontFamily: "'Nunito', sans-serif",
+    headingSize: 24, headingWeight: 800, bodySize: 15, labelSize: 14, letterSpacing: 0,
+    inputRadius: 24, inputHeight: 48, inputPadding: 16, borderWidth: 2,
+    inputBorderColor: '#e4e4e7', focusRing: 'glow', inputFontSize: 15,
+    btnRadius: 28, btnHeight: 48, btnWeight: 800, btnFontSize: 15, btnLetterSpacing: 0,
+    cardRadius: 28, cardPadding: 36, cardShadow: 'soft', cardRing: 'none',
+    headingColor: '#27272a', bodyColor: '#71717a', linkColor: '#6b9fff',
+    errorColor: '#ef4444', placeholderColor: '#a1a1aa',
+  },
+  minimal: {
+    fontFamily: "'Geist', system-ui, sans-serif",
+    headingSize: 20, headingWeight: 500, bodySize: 13, labelSize: 12, letterSpacing: 0,
+    inputRadius: 6, inputHeight: 38, inputPadding: 10, borderWidth: 1,
+    inputBorderColor: '#e4e4e7', focusRing: 'none', inputFontSize: 14,
+    btnRadius: 6, btnHeight: 38, btnWeight: 500, btnFontSize: 13, btnLetterSpacing: 0,
+    cardRadius: 12, cardPadding: 28, cardShadow: 'none', cardRing: 'solid',
+    headingColor: '#18181b', bodyColor: '#a1a1aa', linkColor: '#52525b',
+    errorColor: '#dc2626', placeholderColor: '#d4d4d8',
+  },
+  bold: {
+    fontFamily: "'Frank Ruhl Libre', serif",
+    headingSize: 30, headingWeight: 900, bodySize: 15, labelSize: 13, letterSpacing: 0,
+    inputRadius: 12, inputHeight: 50, inputPadding: 14, borderWidth: 2,
+    inputBorderColor: '#27272a', focusRing: 'ring', inputFontSize: 16,
+    btnRadius: 12, btnHeight: 50, btnWeight: 700, btnFontSize: 16, btnLetterSpacing: 0,
+    cardRadius: 20, cardPadding: 36, cardShadow: 'dramatic', cardRing: 'none',
+    headingColor: '#09090b', bodyColor: '#52525b', linkColor: '#09090b',
+    errorColor: '#b91c1c', placeholderColor: '#a1a1aa',
+  },
+};
+
+function applyPreset(name) {
+  const p = PRESETS[name];
+  if (!p) return;
+  Object.entries(p).forEach(([key, val]) => {
+    const el = document.getElementById(key);
+    if (el) el.value = val;
+  });
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[onclick="applyPreset('${name}')"]`).classList.add('active');
+  update();
+}
+
+// ── Toggle sections ───────────────────────────────────────────────────────────
+function toggleSection(id) {
+  const content = document.getElementById('content-' + id);
+  const arrow = document.getElementById('arrow-' + id);
+  const collapsed = content.classList.toggle('collapsed');
+  arrow.style.transform = collapsed ? 'rotate(-90deg)' : '';
+}
+
+// ── Read state ────────────────────────────────────────────────────────────────
+function s(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+function n(id) { return parseFloat(s(id)); }
+
+// ── Shadows ───────────────────────────────────────────────────────────────────
+const SHADOWS = {
+  none: 'none',
+  soft: '0 2px 12px rgba(0,0,0,0.08)',
+  medium: '0 8px 24px rgba(0,0,0,0.13)',
+  dramatic: '0 20px 60px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.12)',
+};
+
+// ── Focus ring CSS ────────────────────────────────────────────────────────────
+function focusCSS() {
+  const ring = s('focusRing');
+  const bw = n('borderWidth');
+  if (ring === 'ring') return `outline: none; border-color: #6b9fff; box-shadow: 0 0 0 3px rgba(107,159,255,0.35);`;
+  if (ring === 'glow') return `outline: none; border-color: #6b9fff; box-shadow: 0 0 0 4px rgba(107,159,255,0.25), 0 2px 8px rgba(107,159,255,0.2);`;
+  if (ring === 'border') return `outline: none; border-width: ${bw + 1}px; border-color: #6b9fff;`;
+  return `outline: none;`;
+}
+
+// ── Card ring ────────────────────────────────────────────────────────────────
+function cardRingCSS() {
+  const r = s('cardRing');
+  if (r === 'subtle') return 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.07);';
+  if (r === 'solid') return 'box-shadow: inset 0 0 0 1.5px rgba(0,0,0,0.18);';
+  return '';
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderPreview() {
+  const font = s('fontFamily');
+  const hSize = n('headingSize');
+  const hWeight = n('headingWeight');
+  const bSize = n('bodySize');
+  const lSize = n('labelSize');
+  const lSpacing = n('letterSpacing');
+  const iRadius = n('inputRadius');
+  const iHeight = n('inputHeight');
+  const iPad = n('inputPadding');
+  const bw = n('borderWidth');
+  const iBorder = s('inputBorderColor');
+  const iFontSize = n('inputFontSize');
+  const btnR = n('btnRadius');
+  const btnH = n('btnHeight');
+  const btnW = n('btnWeight');
+  const btnFS = n('btnFontSize');
+  const btnLS = n('btnLetterSpacing');
+  const cRadius = n('cardRadius');
+  const cPad = n('cardPadding');
+  const shadow = SHADOWS[s('cardShadow')];
+  const hColor = s('headingColor');
+  const bColor = s('bodyColor');
+  const lColor = s('linkColor');
+  const errColor = s('errorColor');
+  const phColor = s('placeholderColor');
+
+  document.getElementById('previewArea').style.backgroundColor = bgColor;
+
+  const card = document.getElementById('preview-card');
+  card.style.cssText = `
+    width: 340px;
+    border-radius: ${cRadius}px;
+    padding: ${cPad}px;
+    background: ${cardColor};
+    box-shadow: ${shadow}, ${cardRingCSS().replace('box-shadow:','').replace(';','')};
+    font-family: ${font};
+    direction: rtl;
+    text-align: right;
+  `;
+
+  card.innerHTML = `
+    <style>
+      #preview-card .ph::placeholder { color: ${phColor}; }
+      #preview-card .inp:focus { ${focusCSS()} }
+      #preview-card .btn-primary:hover { opacity: 0.88; }
+      #preview-card .btn-outline:hover { background: rgba(0,0,0,0.05); }
+    </style>
+
+    <!-- Heading -->
+    <div style="margin-bottom:20px">
+      <h2 style="font-size:${hSize}px;font-weight:${hWeight};color:${hColor};letter-spacing:${lSpacing}px;line-height:1.2;margin-bottom:6px">ברוכים השבים</h2>
+      <p style="font-size:${bSize}px;color:${bColor};line-height:1.5">
+        אין לך חשבון?&nbsp;
+        <a href="#" style="color:${lColor};font-weight:600;text-decoration:underline;text-underline-offset:3px" onclick="return false">הירשם</a>
+      </p>
+    </div>
+
+    <!-- Google button -->
+    <button class="btn-outline" style="
+      width:100%;height:${btnH}px;border-radius:${btnR}px;
+      background:transparent;border:${bw}px solid ${iBorder};
+      font-family:${font};font-size:${btnFS}px;font-weight:${btnW};
+      letter-spacing:${btnLS}px;color:${hColor};
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+      transition:background .15s;direction:rtl;
+    ">
+      <svg width="16" height="16" viewBox="0 0 24 24">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      המשך עם Google
+    </button>
+
+    <!-- Divider -->
+    <div style="display:flex;align-items:center;gap:12px;margin:18px 0">
+      <div style="flex:1;height:1px;background:rgba(0,0,0,0.12)"></div>
+      <span style="font-size:${bSize - 1}px;color:${bColor}">או</span>
+      <div style="flex:1;height:1px;background:rgba(0,0,0,0.12)"></div>
+    </div>
+
+    <!-- Fields -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <!-- Email -->
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <label style="font-size:${lSize}px;font-weight:500;color:${hColor};letter-spacing:${lSpacing}px">אימייל</label>
+        <input class="inp ph" type="email" placeholder="you@example.com" style="
+          width:100%;height:${iHeight}px;border-radius:${iRadius}px;
+          border:${bw}px solid ${iBorder};background:rgba(255,255,255,0.55);
+          padding:0 ${iPad}px;font-family:${font};font-size:${iFontSize}px;color:${hColor};
+          text-align:right;direction:rtl;transition:border-color .15s,box-shadow .15s;
+          box-sizing:border-box;
+        ">
+      </div>
+
+      <!-- Password -->
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <a href="#" style="font-size:${lSize - 1}px;color:${bColor};text-decoration:underline;text-underline-offset:3px" onclick="return false">שכחת סיסמה?</a>
+          <label style="font-size:${lSize}px;font-weight:500;color:${hColor};letter-spacing:${lSpacing}px">סיסמה</label>
+        </div>
+        <input class="inp ph" type="password" placeholder="••••••••" style="
+          width:100%;height:${iHeight}px;border-radius:${iRadius}px;
+          border:${bw}px solid ${iBorder};background:rgba(255,255,255,0.55);
+          padding:0 ${iPad}px;font-family:${font};font-size:${iFontSize}px;color:${hColor};
+          text-align:right;direction:rtl;transition:border-color .15s,box-shadow .15s;
+          box-sizing:border-box;
+        ">
+      </div>
+
+      <!-- Error example -->
+      <p style="font-size:${lSize - 1}px;color:${errColor};margin-top:-6px">כתובת מייל לא תקינה</p>
+
+      <!-- Submit -->
+      <button class="btn-primary" style="
+        width:100%;height:${btnH}px;border-radius:${btnR}px;
+        background:${hColor};border:none;
+        font-family:${font};font-size:${btnFS}px;font-weight:${btnW};
+        letter-spacing:${btnLS}px;color:${cardColor};
+        cursor:pointer;transition:opacity .15s;margin-top:2px;
+      ">התחברות</button>
+
+    </div>
+  `;
+
+  // Update color code labels
+  ['inputBorderColor','headingColor','bodyColor','linkColor','errorColor','placeholderColor'].forEach(id => {
+    const vEl = document.getElementById('val-' + id);
+    if (vEl) vEl.textContent = document.getElementById(id).value;
+  });
+  // Update slider labels
+  [['headingSize','px'],['headingWeight',''],['bodySize','px'],['labelSize','px'],
+   ['letterSpacing','px'],['inputRadius','px'],['inputHeight','px'],['inputPadding','px'],
+   ['borderWidth','px'],['inputFontSize','px'],['btnRadius','px'],['btnHeight','px'],
+   ['btnWeight',''],['btnFontSize','px'],['btnLetterSpacing','px'],['cardRadius','px'],
+   ['cardPadding','px']].forEach(([id, unit]) => {
+    const vEl = document.getElementById('val-' + id);
+    if (vEl) vEl.textContent = document.getElementById(id).value + unit;
+  });
+}
+
+// ── Prompt / CSS output ───────────────────────────────────────────────────────
+function updatePrompt() {
+  const lines = [
+    `/* Auth page design tokens — paste into globals.css */`,
+    `/* Generated by the Auth Design Explorer */`,
+    ``,
+    `:root {`,
+    `  /* Typography */`,
+    `  --auth-font-family: ${s('fontFamily')};`,
+    `  --auth-heading-size: ${n('headingSize')}px;`,
+    `  --auth-heading-weight: ${n('headingWeight')};`,
+    `  --auth-body-size: ${n('bodySize')}px;`,
+    `  --auth-label-size: ${n('labelSize')}px;`,
+    `  --auth-letter-spacing: ${n('letterSpacing')}px;`,
+    ``,
+    `  /* Input fields */`,
+    `  --auth-input-radius: ${n('inputRadius')}px;`,
+    `  --auth-input-height: ${n('inputHeight')}px;`,
+    `  --auth-input-padding: ${n('inputPadding')}px;`,
+    `  --auth-input-border-width: ${n('borderWidth')}px;`,
+    `  --auth-input-border-color: ${s('inputBorderColor')};`,
+    `  --auth-input-font-size: ${n('inputFontSize')}px;`,
+    ``,
+    `  /* Buttons */`,
+    `  --auth-btn-radius: ${n('btnRadius')}px;`,
+    `  --auth-btn-height: ${n('btnHeight')}px;`,
+    `  --auth-btn-weight: ${n('btnWeight')};`,
+    `  --auth-btn-font-size: ${n('btnFontSize')}px;`,
+    `  --auth-btn-letter-spacing: ${n('btnLetterSpacing')}px;`,
+    ``,
+    `  /* Card */`,
+    `  --auth-card-radius: ${n('cardRadius')}px;`,
+    `  --auth-card-padding: ${n('cardPadding')}px;`,
+    `  --auth-card-shadow: ${SHADOWS[s('cardShadow')]};`,
+    ``,
+    `  /* Colors */`,
+    `  --auth-heading-color: ${s('headingColor')};`,
+    `  --auth-body-color: ${s('bodyColor')};`,
+    `  --auth-link-color: ${s('linkColor')};`,
+    `  --auth-error-color: ${s('errorColor')};`,
+    `  --auth-placeholder-color: ${s('placeholderColor')};`,
+    `}`,
+  ];
+  document.getElementById('outputText').textContent = lines.join('\n');
+}
+
+function update() {
+  renderPreview();
+  updatePrompt();
+}
+
+function copyOutput() {
+  const text = document.getElementById('outputText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy CSS vars'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// init
+update();
+</script>
+</body>
+</html>

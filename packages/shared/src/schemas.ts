@@ -44,8 +44,42 @@ export const submitScoreSchema = z.object({
   ),
 })
 
+export const loginSchema = z.object({
+  email: z.string().email('auth.errors.emailInvalid'),
+  password: z.string().min(8, 'auth.errors.passwordTooShort'),
+})
+
+export const signupSchema = z
+  .object({
+    email: z.string().email('auth.errors.emailInvalid'),
+    password: z.string().min(8, 'auth.errors.passwordTooShort'),
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: 'auth.errors.passwordsMismatch',
+    path: ['confirmPassword'],
+  })
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('auth.errors.emailInvalid'),
+})
+
+export const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, 'auth.errors.passwordTooShort'),
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: 'auth.errors.passwordsMismatch',
+    path: ['confirmPassword'],
+  })
+
 export type CreateGameInput = z.infer<typeof createGameSchema>
 export type QuestionInput = z.infer<typeof questionSchema>
 export type PassingCardInput = z.infer<typeof passingCardSchema>
 export type JoinGameInput = z.infer<typeof joinGameSchema>
 export type SubmitScoreInput = z.infer<typeof submitScoreSchema>
+export type LoginInput = z.infer<typeof loginSchema>
+export type SignupInput = z.infer<typeof signupSchema>
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
