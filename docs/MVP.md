@@ -2,21 +2,39 @@
 
 ## Overview
 
-The MVP delivers two core surfaces:
+The MVP delivers two core surfaces served by a **single Next.js app** at `myweddinggame.com`:
+
 1. **Couple Dashboard** — create an account, build a game, deploy it, get a QR code.
 2. **Player Game** — scan QR, enter name, play trivia with passing cards, see leaderboard.
+
+When a couple deploys their game it is assigned a unique **3-letter code** (e.g. `abc`).  
+The QR code points to `myweddinggame.com/abc`. Guests land there directly — no account needed.
+
+### App structure
+
+```
+myweddinggame.com/           ← marketing landing page
+myweddinggame.com/login      ← couple sign-in
+myweddinggame.com/signup     ← couple sign-up
+myweddinggame.com/dashboard  ← couple game management (protected)
+myweddinggame.com/abc        ← player game entry via QR (public)
+```
 
 ---
 
 ## Phase 1 — Project Setup
 
-- [ ] Initialize monorepo structure: `apps/dashboard`, `apps/game`, `packages/shared`
-- [ ] Configure TypeScript, ESLint, Prettier across packages
-- [ ] Set up database schema (see TECH_STACK.md)
-- [ ] Set up auth provider (email/password + Google OAuth)
-- [ ] Configure file storage bucket for photo/video uploads
-- [ ] Set up environment variable management (local + production)
-- [ ] Deploy skeleton to hosting provider (verify CI/CD pipeline works)
+- [x] Initialize monorepo: `apps/web`, `packages/shared`, `packages/db`, `packages/eslint-config`
+- [x] Configure TypeScript, ESLint, Prettier across all packages
+- [x] Define database schema — `games`, `questions`, `passing_cards`, `players`, `player_answers`
+- [x] Set up Supabase client helpers (server + browser) and auth middleware
+- [x] Set up environment variable management (`env.local.example`, gitignore)
+- [x] GitHub Actions CI — lint + type-check on every PR
+- [ ] Create Supabase project and run first migration (`prisma migrate dev`)
+- [ ] Enable Email/Password and Google OAuth in Supabase Auth
+- [ ] Create `photos` and `videos` storage buckets with RLS policies
+- [ ] Link Vercel project to GitHub repo and set environment variables
+- [ ] Verify end-to-end: sign up, sign in, session persists, skeleton deploys
 
 ---
 
@@ -50,7 +68,7 @@ The MVP delivers two core surfaces:
 
 ### Deploy & QR
 - [ ] Deploy game button (validates at least 3 questions exist)
-- [ ] On deploy: generate unique game slug, mark game as live
+- [ ] On deploy: generate unique 3-letter slug, check for collisions, mark game as live
 - [ ] QR code generation displayed on screen (downloadable PNG)
 - [ ] Un-deploy / take game offline button
 - [ ] Share link copy button alongside QR
@@ -60,10 +78,10 @@ The MVP delivers two core surfaces:
 ## Phase 3 — Player Game (Core)
 
 ### Entry
-- [ ] Landing page loaded from QR link (`/game/:slug`)
+- [ ] Landing page at `myweddinggame.com/abc` (loaded from QR)
 - [ ] Player name entry form (first name required, last name optional)
 - [ ] "Join Game" validation (game must be live, reject empty names)
-- [ ] Session stored in memory / localStorage (no login required)
+- [ ] Session stored in localStorage (no account required)
 
 ### Gameplay Loop
 - [ ] Display question with 4 answer buttons
@@ -85,20 +103,20 @@ The MVP delivers two core surfaces:
 - [ ] Final screen shows player's score and rank
 - [ ] Top 3 displayed with 1st / 2nd / 3rd place styling
 - [ ] Full ranked list below top 3
-- [ ] Live updates (poll every 5s or use websocket) so late finishers appear
+- [ ] Live updates (poll every 5s or use Supabase Realtime) so late finishers appear
 - [ ] "Play again" resets session and returns to name entry
 
 ---
 
 ## Phase 4 — Polish & Hardening
 
-- [ ] Mobile-first responsive design across all game screens
+- [ ] Mobile-first responsive design across all screens
 - [ ] Loading states and skeleton screens
 - [ ] Error boundaries and fallback UI
 - [ ] Image/video optimization (compression on upload, lazy loading)
 - [ ] Rate limiting on game join and answer submission endpoints
 - [ ] Input sanitization on all user-supplied text
-- [ ] Game slug collision handling
+- [ ] Slug collision handling (retry loop on deploy)
 - [ ] Handle game going offline mid-session gracefully
 - [ ] Couple dashboard: basic analytics (total players, average score)
 
@@ -110,7 +128,7 @@ The MVP delivers two core surfaces:
 - [ ] Email confirmation on sign-up
 - [ ] Delete account + game data (GDPR)
 - [ ] Terms of service + privacy policy pages
-- [ ] Monitoring and error tracking (e.g., Sentry)
+- [ ] Monitoring and error tracking (Sentry)
 - [ ] Performance testing with simulated concurrent players
 - [ ] Final QA pass on real mobile devices
 
