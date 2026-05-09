@@ -57,6 +57,10 @@ Requires two env vars: `DATABASE_URL` (pooled connection) and `DIRECT_URL` (dire
 - `utils.ts` — `generateSlug()`: random 3-letter lowercase string
 - `schemas.ts` — Zod validation schemas
 
+## Docs & planning
+
+All planning and spec documents live in `docs/plans/`. Never create plan files in `docs/` root.
+
 ## Game concept
 
 Couples create a trivia game, deploy it, and share a QR code. Guests play without accounts — player session stored in `localStorage`. Score = sum of per-question scores (speed-penalised). Leaderboard updates live on the end screen.
