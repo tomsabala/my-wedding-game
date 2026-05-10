@@ -41,10 +41,10 @@ myweddinggame.com/abc        ← player game entry via QR (public)
 ## Phase 2 — Couple Dashboard (Core)
 
 ### Auth
-- [ ] Sign up page (email + password)
-- [ ] Log in page
-- [ ] Password reset flow
-- [ ] Protected route guard
+- [x] Sign up page (email + password)
+- [x] Log in page
+- [x] Password reset flow
+- [x] Protected route guard
 
 ### Game Management
 - [ ] "My Game" page — shows game status (draft / live)
