@@ -20,16 +20,16 @@ export default function GameCard({ game }: Props) {
   return (
     <Link
       href={`/dashboard/games/${game.id}`}
-      className="block rounded-xl bg-white transition-all hover:-translate-y-0.5"
-      style={{
-        padding: 'var(--dashboard-card-padding)',
-        boxShadow: 'var(--dashboard-card-shadow)',
-      }}
+      className="block rounded-2xl bg-wedding-surface border border-wedding-outline-variant transition-all hover:-translate-y-0.5 hover:shadow-sm"
+      style={{ padding: 'var(--dashboard-card-padding)' }}
     >
       <div className="flex items-start justify-between gap-2">
         <h2
-          style={{ fontSize: 'var(--dashboard-subheading-size)', fontWeight: 'var(--dashboard-subheading-weight)' }}
-          className="text-zinc-900"
+          className="font-serif text-wedding-on-surface"
+          style={{
+            fontSize: 'var(--dashboard-subheading-size)',
+            fontWeight: 'var(--dashboard-subheading-weight)',
+          }}
         >
           {game.coupleNames}
         </h2>
@@ -37,19 +37,22 @@ export default function GameCard({ game }: Props) {
           className={cn(
             'shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold',
             game.status === 'LIVE'
-              ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200'
-              : 'bg-zinc-100 text-zinc-400',
+              ? 'bg-wedding-primary-container text-wedding-primary'
+              : 'bg-wedding-surface-container text-wedding-on-surface-variant',
           )}
         >
           {game.status === 'LIVE' ? 'פעיל' : 'טיוטה'}
         </span>
       </div>
-      <p className="mt-1.5 text-zinc-400" style={{ fontSize: 'var(--dashboard-label-size)' }}>
+      <p
+        className="mt-1.5 text-wedding-on-surface-variant"
+        style={{ fontSize: 'var(--dashboard-label-size)' }}
+      >
         {formattedDate}
       </p>
       {game.status === 'LIVE' && (
         <p
-          className="mt-3 border-t border-zinc-100 pt-3 text-zinc-500"
+          className="mt-3 border-t border-wedding-outline-variant pt-3 text-wedding-on-surface-variant"
           style={{ fontSize: 'var(--dashboard-small-size)' }}
         >
           {game._count.players} שחקנים
