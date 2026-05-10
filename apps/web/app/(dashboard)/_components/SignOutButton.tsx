@@ -4,9 +4,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 
-type Props = { style?: React.CSSProperties }
-
-export default function SignOutButton({ style }: Props) {
+export default function SignOutButton() {
   const router = useRouter()
   const supabase = createClient()
 
@@ -16,7 +14,7 @@ export default function SignOutButton({ style }: Props) {
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={signOut} style={style}>
+    <Button variant="ghost" size="sm" onClick={signOut} className="text-wedding-on-surface-variant">
       יציאה
     </Button>
   )
