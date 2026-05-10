@@ -2,18 +2,37 @@
 @import "tw-animate-css";
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  /* ─── Stitch Wedding Design Tokens ────────────────────────────────────────── */
+  --wedding-bg: #faf9f6;
+  --wedding-surface: #ffffff;
+  --wedding-surface-low: #f4f3f1;
+  --wedding-surface-container: #efeeeb;
+  --wedding-primary: #7b5455;
+  --wedding-primary-container: #f4c2c2;
+  --wedding-on-primary: #ffffff;
+  --wedding-secondary: #5c5d6e;
+  --wedding-secondary-container: #e1e1f5;
+  --wedding-tertiary: #735c00;
+  --wedding-tertiary-container: #f1ca50;
+  --wedding-on-surface: #1a1c1a;
+  --wedding-on-surface-variant: #504444;
+  --wedding-outline: #827473;
+  --wedding-outline-variant: #d4c2c2;
+  --wedding-error: #ba1a1a;
+
+  /* ─── Tailwind semantic aliases ────────────────────────────────────────────── */
+  --background: var(--wedding-bg);
+  --foreground: var(--wedding-on-surface);
+  --primary: var(--wedding-primary);
+  --primary-foreground: var(--wedding-on-primary);
+  --secondary: var(--wedding-secondary-container);
+  --secondary-foreground: var(--wedding-on-surface);
+  --muted: var(--wedding-surface-low);
+  --muted-foreground: var(--wedding-on-surface-variant);
+  --border: var(--wedding-outline-variant);
+  --input: var(--wedding-outline-variant);
+  --ring: var(--wedding-primary);
+  --destructive: var(--wedding-error);
   --radius-md: 6px;
 }
 
@@ -30,37 +49,40 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
-  --font-sans: var(--font-nunito);
-  --font-mono: var(--font-geist-mono);
-  --radius-md: var(--radius-md);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
-  }
+  /* Named Stitch tokens exposed as Tailwind utilities (bg-wedding-*, text-wedding-*, etc.) */
+  --color-wedding-bg: var(--wedding-bg);
+  --color-wedding-surface: var(--wedding-surface);
+  --color-wedding-surface-low: var(--wedding-surface-low);
+  --color-wedding-surface-container: var(--wedding-surface-container);
+  --color-wedding-primary: var(--wedding-primary);
+  --color-wedding-primary-container: var(--wedding-primary-container);
+  --color-wedding-on-primary: var(--wedding-on-primary);
+  --color-wedding-secondary: var(--wedding-secondary);
+  --color-wedding-secondary-container: var(--wedding-secondary-container);
+  --color-wedding-tertiary: var(--wedding-tertiary);
+  --color-wedding-tertiary-container: var(--wedding-tertiary-container);
+  --color-wedding-on-surface: var(--wedding-on-surface);
+  --color-wedding-on-surface-variant: var(--wedding-on-surface-variant);
+  --color-wedding-outline: var(--wedding-outline);
+  --color-wedding-outline-variant: var(--wedding-outline-variant);
+  --color-wedding-error: var(--wedding-error);
+
+  --font-sans: var(--font-jakarta);
+  --font-serif: var(--font-playfair);
+  --radius-md: var(--radius-md);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+  font-family: var(--font-sans, 'Plus Jakarta Sans', Arial, Helvetica, sans-serif);
 }
 
 /* ─── Dashboard design tokens ─────────────────────────────────────────────── */
 :root {
   --dashboard-nav-height: 60px;
-  --dashboard-page-padding: 24px;
+  --dashboard-page-padding: 48px;
 
   --dashboard-heading-size: 20px;
   --dashboard-heading-weight: 800;
@@ -77,7 +99,7 @@ body {
 
 /* ─── Auth page design tokens ──────────────────────────────────────────────── */
 :root {
-  --auth-font-family: var(--font-nunito, 'Nunito', sans-serif);
+  --auth-font-family: var(--font-jakarta, 'Plus Jakarta Sans', sans-serif);
   --auth-heading-size: 23px;
   --auth-heading-weight: 600;
   --auth-body-size: 14px;
