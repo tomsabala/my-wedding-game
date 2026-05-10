@@ -9,35 +9,25 @@ export default async function DashboardPage() {
   const games = await getGames()
 
   return (
-    <div
-      className="rounded-2xl"
-      style={{
-        background: 'rgba(255,255,255,0.12)',
-        border: '1px solid rgba(255,255,255,0.25)',
-        backdropFilter: 'blur(8px)',
-        padding: 'var(--dashboard-card-padding)',
-      }}
-    >
+    <div>
       <div className="mb-6 flex items-center justify-between">
         <h1
+          className="tracking-tight text-wedding-on-surface"
           style={{
             fontSize: 'var(--dashboard-heading-size)',
             fontWeight: 'var(--dashboard-heading-weight)',
           }}
-          className="tracking-tight text-white"
         >
           {t('gamesTitle')}
         </h1>
         <Link href="/dashboard/games/new">
-          <Button style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', fontWeight: 600 }}>
-            {t('createGame')}
-          </Button>
+          <Button>{t('createGame')}</Button>
         </Link>
       </div>
 
       {games.length === 0 ? (
         <div className="flex items-center justify-center" style={{ minHeight: '40vh' }}>
-          <p className="text-center text-white/70">{t('empty')}</p>
+          <p className="text-center text-wedding-on-surface-variant">{t('empty')}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
