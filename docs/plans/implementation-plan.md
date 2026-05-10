@@ -1,5 +1,28 @@
 # Plan: Implement Full Wedding Story Trivia Application
 
+## Progress
+
+| Phase | Status | Commits |
+|-------|--------|---------|
+| 1 — Design System Foundation | ✅ Done | `9f92aca` `a6ab116` `3876c11` |
+| 2 — Dashboard Shell Redesign | ✅ Done | `aeaec96` `11d1bfa` `fd53465` |
+| 3 — Game Detail 4-Tab Layout | ✅ Done | `49f52ea` `3ec8a9f` `615777d` `3432e72` |
+| 7 — Game Settings Tab | ⬜ Next | — |
+| 4 — Questions Manager | ⬜ Pending | — |
+| 5 — Passing Cards Manager | ⬜ Pending | — |
+| 6 — Media Gallery | ⬜ Pending | — |
+| 8 — Player Welcome Screen | ⬜ Pending | — |
+| 9 — Gameplay Loop | ⬜ Pending | — |
+| 10 — i18n Audit | ⬜ Pending | — |
+
+### Notes from implementation
+- **Phase 3 gap filled:** `games/[id]/layout.tsx` was missing from the plan's critical files — added as the required Next.js layout to host `GameTabs` persistently across all sub-routes.
+- **Schema change:** `createdAt` added to `Player` model (needed for activity feed). Requires migration: `pnpm --filter @repo/db db:migrate` once `.env.local` is configured.
+- **DeploySection refactored:** now renders buttons only (deploy/undeploy). Copy-link moved to `QRCodeSection`.
+- **GameStats rewritten:** now shows question-count progress bar (target: 40) instead of player accuracy stats (those belong in Phase 9).
+
+---
+
 ## Context
 
 The Stitch project "Wedding Story Trivia" (project ID `2153929781898588535`) is the source of truth for all UI/UX. The codebase already has auth, a game list dashboard, and a game detail page — but no question/passing-card management, no player-facing screens, and the visual design is completely different (random-color glassmorphism vs. Stitch's static cream/blush/gold palette). The entire app is Hebrew RTL and must remain so. The user also wants a full Media Gallery feature even though it has no Stitch screen — it will be built following the Stitch design system principles.
@@ -13,7 +36,7 @@ The Stitch project "Wedding Story Trivia" (project ID `2153929781898588535`) is 
 
 ---
 
-## Phase 1 — Design System Foundation
+## ✅ Phase 1 — Design System Foundation
 
 **Goal:** Replace the current neutral/random design tokens with the Stitch palette and fonts. No layout changes — just the visual layer.
 
@@ -61,7 +84,7 @@ Replace all `--background`, `--primary`, etc. with Stitch hex values:
 
 ---
 
-## Phase 2 — Dashboard Shell Redesign
+## ✅ Phase 2 — Dashboard Shell Redesign
 
 **Goal:** Replace random-color glassmorphism with Stitch's static cream/blush design. Match the 4-tab game navigation layout.
 
@@ -93,7 +116,7 @@ Match Stitch card style:
 
 ---
 
-## Phase 3 — Game Detail: 4-Tab Layout (Stitch "Couple's Dashboard")
+## ✅ Phase 3 — Game Detail: 4-Tab Layout (Stitch "Couple's Dashboard")
 
 **Goal:** Transform the game detail page into a tabbed interface matching the Stitch Couple's Dashboard — Overview, Questions, Media, Settings.
 
