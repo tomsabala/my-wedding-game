@@ -69,7 +69,10 @@ export async function getGame(id: string) {
   const game = await prisma.game.findUnique({
     where: { id },
     include: {
-      players: { select: { id: true, displayName: true, score: true, finishedAt: true } },
+      players: {
+        select: { id: true, displayName: true, score: true, finishedAt: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+      },
       questions: { select: { id: true, position: true }, orderBy: { position: 'asc' } },
       _count: { select: { questions: true, players: true } },
     },
@@ -112,6 +115,7 @@ export async function getGame(id: string) {
       displayName: p.displayName,
       score: p.score,
       finishedAt: p.finishedAt?.toISOString() ?? null,
+      createdAt: p.createdAt.toISOString(),
     })),
     _count: game._count,
     questionStats,
