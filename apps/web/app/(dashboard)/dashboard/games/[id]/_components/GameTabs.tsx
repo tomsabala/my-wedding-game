@@ -2,18 +2,21 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 type Tab = { href: string; label: string; icon: string; exact?: boolean }
 
 export default function GameTabs({ id }: { id: string }) {
+  const t = useTranslations('dashboard.tabs')
   const pathname = usePathname()
 
   const tabs: Tab[] = [
-    { href: `/dashboard/games/${id}`, label: 'סקירה', icon: 'quiz', exact: true },
-    { href: `/dashboard/games/${id}/questions`, label: 'שאלות', icon: 'edit_note' },
-    { href: `/dashboard/games/${id}/media`, label: 'מדיה', icon: 'photo_library' },
-    { href: `/dashboard/games/${id}/settings`, label: 'הגדרות', icon: 'settings_heart' },
+    { href: `/dashboard/games/${id}`, label: t('overview'), icon: 'quiz', exact: true },
+    { href: `/dashboard/games/${id}/questions`, label: t('questions'), icon: 'edit_note' },
+    { href: `/dashboard/games/${id}/passing-cards`, label: t('passingCards'), icon: 'style' },
+    { href: `/dashboard/games/${id}/media`, label: t('media'), icon: 'photo_library' },
+    { href: `/dashboard/games/${id}/settings`, label: t('settings'), icon: 'settings_heart' },
   ]
 
   return (

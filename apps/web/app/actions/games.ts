@@ -5,20 +5,7 @@ import { createGameSchema, generateSlug, type CreateGameInput } from '@repo/shar
 import { notFound } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
-import { createClient } from '@/lib/supabase/server'
-
-type ActionResult<T = void> = T extends void
-  ? { success: true } | { success: false; error: string }
-  : { success: true; data: T } | { success: false; error: string }
-
-async function getAuthUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-  return user
-}
+import { getAuthUser, type ActionResult } from '@/lib/actions'
 
 export async function getGames() {
   const user = await getAuthUser()
@@ -167,5 +154,48 @@ export async function undeployGame(id: string): Promise<ActionResult> {
 
   revalidatePath('/dashboard')
   revalidatePath(`/dashboard/games/${id}`)
+  return { success: true }
+}
+
+export async function updateGame(
+  id: string,
+  data: CreateGameInput,
+): Promise<ActionResult> {
+  const user = await getAuthUser()
+
+  const parsed = createGameSchema.safeParse(data)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.errors[0]?.message ?? 'שגיאה בנתונים' }
+  }
+
+  const existing = await prisma.game.findUnique({ where: { id } })
+  if (!existing || existing.userId !== user.id) notFound()
+
+  const { coupleNames, weddingDate, tagline } = parsed.data
+
+  await prisma.game.update({
+    where: { id, userId: user.id },
+    data: {
+      coupleNames,
+      weddingDate: new Date(weddingDate),
+      tagline: tagline ?? null,
+    },
+  })
+
+  revalidatePath('/dashboard')
+  revalidatePath(`/dashboard/games/${id}`)
+  revalidatePath(`/dashboard/games/${id}/settings`)
+  return { success: true }
+}
+
+export async function deleteGame(id: string): Promise<ActionResult> {
+  const user = await getAuthUser()
+
+  const existing = await prisma.game.findUnique({ where: { id } })
+  if (!existing || existing.userId !== user.id) notFound()
+
+  await prisma.game.delete({ where: { id, userId: user.id } })
+
+  revalidatePath('/dashboard')
   return { success: true }
 }

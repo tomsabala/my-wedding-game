@@ -41,7 +41,7 @@ export default function DeploySection({ game }: Props) {
       {game.status === 'DRAFT' ? (
         <>
           {game._count.questions < 3 && (
-            <p className="text-xs text-amber-600 text-end">נדרשות לפחות 3 שאלות לפרסום</p>
+            <p className="text-xs text-amber-600 text-end">{t('notEnoughQuestions')}</p>
           )}
           <Button onClick={handleDeploy} disabled={isPending || game._count.questions < 3}>
             {isPending ? (

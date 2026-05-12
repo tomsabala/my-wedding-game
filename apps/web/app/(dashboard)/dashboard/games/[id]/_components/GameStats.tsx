@@ -1,3 +1,5 @@
+import { getTranslations } from 'next-intl/server'
+
 const QUESTION_TARGET = 40
 
 type Props = {
@@ -5,7 +7,8 @@ type Props = {
   playerCount: number
 }
 
-export default function GameStats({ questionCount, playerCount }: Props) {
+export default async function GameStats({ questionCount, playerCount }: Props) {
+  const t = await getTranslations('dashboard.gameStats')
   const pct = Math.min(Math.round((questionCount / QUESTION_TARGET) * 100), 100)
 
   return (
@@ -19,13 +22,13 @@ export default function GameStats({ questionCount, playerCount }: Props) {
         </span>
         <div>
           <p className="text-2xl font-bold text-wedding-on-surface">{questionCount}</p>
-          <p className="text-xs text-wedding-on-surface-variant">שאלות</p>
+          <p className="text-xs text-wedding-on-surface-variant">{t('questions')}</p>
         </div>
       </div>
 
       <div>
         <div className="flex justify-between text-xs text-wedding-on-surface-variant mb-1.5">
-          <span>התקדמות לעבר {QUESTION_TARGET} שאלות</span>
+          <span>{t('progressToward', { target: QUESTION_TARGET })}</span>
           <span>{pct}%</span>
         </div>
         <div className="h-2 rounded-full bg-wedding-surface-container overflow-hidden">
@@ -38,7 +41,7 @@ export default function GameStats({ questionCount, playerCount }: Props) {
 
       {playerCount > 0 && (
         <p className="text-xs text-wedding-on-surface-variant border-t border-wedding-outline-variant pt-3">
-          {playerCount} שחקנים הצטרפו עד כה
+          {t('joinedSoFar', { n: playerCount })}
         </p>
       )}
     </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { cn } from '@/lib/utils'
 import type { GameStatus } from '@repo/db'
 
@@ -12,7 +13,8 @@ type Props = {
   }
 }
 
-export default function GameCard({ game }: Props) {
+export default async function GameCard({ game }: Props) {
+  const t = await getTranslations('dashboard')
   const formattedDate = new Intl.DateTimeFormat('he-IL', { dateStyle: 'long' }).format(
     new Date(game.weddingDate),
   )
@@ -41,7 +43,7 @@ export default function GameCard({ game }: Props) {
               : 'bg-wedding-surface-container text-wedding-on-surface-variant',
           )}
         >
-          {game.status === 'LIVE' ? 'פעיל' : 'טיוטה'}
+          {game.status === 'LIVE' ? t('status.live') : t('status.draft')}
         </span>
       </div>
       <p
@@ -55,7 +57,7 @@ export default function GameCard({ game }: Props) {
           className="mt-3 border-t border-wedding-outline-variant pt-3 text-wedding-on-surface-variant"
           style={{ fontSize: 'var(--dashboard-small-size)' }}
         >
-          {game._count.players} שחקנים
+          {t('overview.playersCount', { count: game._count.players })}
         </p>
       )}
     </Link>

@@ -7,13 +7,15 @@
 | 1 — Design System Foundation | ✅ Done | `9f92aca` `a6ab116` `3876c11` |
 | 2 — Dashboard Shell Redesign | ✅ Done | `aeaec96` `11d1bfa` `fd53465` |
 | 3 — Game Detail 4-Tab Layout | ✅ Done | `49f52ea` `3ec8a9f` `615777d` `3432e72` |
-| 7 — Game Settings Tab | ⬜ Next | — |
-| 4 — Questions Manager | ⬜ Pending | — |
-| 5 — Passing Cards Manager | ⬜ Pending | — |
-| 6 — Media Gallery | ⬜ Pending | — |
-| 8 — Player Welcome Screen | ⬜ Pending | — |
-| 9 — Gameplay Loop | ⬜ Pending | — |
-| 10 — i18n Audit | ⬜ Pending | — |
+| 7 — Game Settings Tab | ✅ Done | uncommitted |
+| 4 — Questions Manager | ✅ Done | uncommitted |
+| 5 — Passing Cards Manager | ✅ Done | uncommitted |
+| 6 — Media Gallery | ✅ Done | uncommitted |
+| 8 — Player Welcome Screen | ✅ Done | uncommitted |
+| 9 — Gameplay Loop | ✅ Done | uncommitted |
+| 10 — i18n Audit | ✅ Done | uncommitted |
+
+> See `implementation-plan-implementation-notes.md` for decisions made during the all-phases pass.
 
 ### Notes from implementation
 - **Phase 3 gap filled:** `games/[id]/layout.tsx` was missing from the plan's critical files — added as the required Next.js layout to host `GameTabs` persistently across all sub-routes.

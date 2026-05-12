@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import { getGame } from '@/app/actions/games'
 import DeploySection from './_components/DeploySection'
 import QRCodeSection from './_components/QRCodeSection'
@@ -5,18 +6,21 @@ import GameStats from './_components/GameStats'
 
 type Props = { params: Promise<{ id: string }> }
 
-function relativeTime(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime()
+type RelativeTimeFn = (key: string, values: { n: number }) => string
+
+function timeAgo(iso: string, t: RelativeTimeFn): string {
+  const now = new Date()
+  const diffMs = now.getTime() - new Date(iso).getTime()
   const mins = Math.floor(diffMs / 60_000)
-  if (mins < 60) return `לפני ${mins} דקות`
+  if (mins < 60) return t('overview.minutesAgo', { n: mins })
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `לפני ${hours} שעות`
-  return `לפני ${Math.floor(hours / 24)} ימים`
+  if (hours < 24) return t('overview.hoursAgo', { n: hours })
+  return t('overview.daysAgo', { n: Math.floor(hours / 24) })
 }
 
 export default async function GameDetailPage({ params }: Props) {
   const { id } = await params
-  const game = await getGame(id)
+  const [game, t] = await Promise.all([getGame(id), getTranslations('dashboard')])
 
   const weddingDate = new Intl.DateTimeFormat('he-IL', { dateStyle: 'long' }).format(
     new Date(game.weddingDate),
@@ -24,7 +28,6 @@ export default async function GameDetailPage({ params }: Props) {
 
   const avatarPlayers = game.players.slice(0, 3)
   const extraPlayers = Math.max(0, game._count.players - 3)
-
   const recentActivity = game.players.slice(0, 3)
 
   return (
@@ -52,7 +55,7 @@ export default async function GameDetailPage({ params }: Props) {
                 <span
                   className={`size-1.5 rounded-full ${game.status === 'LIVE' ? 'bg-wedding-primary' : 'bg-wedding-outline'}`}
                 />
-                {game.status === 'LIVE' ? 'פעיל' : 'טיוטה'}
+                {game.status === 'LIVE' ? t('status.live') : t('status.draft')}
               </span>
             </div>
           </div>
@@ -78,7 +81,7 @@ export default async function GameDetailPage({ params }: Props) {
             </div>
             <span className="text-sm text-wedding-on-surface-variant">
               {extraPlayers > 0 ? `+${extraPlayers} ` : ''}
-              {game._count.players} שחקנים
+              {t('overview.playersCount', { count: game._count.players })}
             </span>
           </div>
         )}
@@ -105,7 +108,7 @@ export default async function GameDetailPage({ params }: Props) {
                 qr_code_2
               </span>
               <p className="text-sm text-wedding-on-surface-variant text-center">
-                קוד QR יופיע לאחר פרסום המשחק
+                {t('overview.qrPlaceholder')}
               </p>
             </div>
           )}
@@ -114,10 +117,10 @@ export default async function GameDetailPage({ params }: Props) {
 
       {/* ── Activity feed ─────────────────────────────────────────────────── */}
       <div className="rounded-2xl bg-wedding-surface border border-wedding-outline-variant p-6">
-        <h2 className="text-sm font-semibold text-wedding-on-surface mb-4">עדכונים אחרונים</h2>
+        <h2 className="text-sm font-semibold text-wedding-on-surface mb-4">{t('overview.activityTitle')}</h2>
         {recentActivity.length === 0 ? (
           <p className="text-sm text-wedding-on-surface-variant text-center py-4">
-            אין פעילות עדיין. שתפו את הקישור עם האורחים!
+            {t('overview.activityEmpty')}
           </p>
         ) : (
           <ul className="space-y-3">
@@ -133,11 +136,11 @@ export default async function GameDetailPage({ params }: Props) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-wedding-on-surface truncate">
-                    {p.displayName} הצטרף למשחק
+                    {t('overview.playerJoined', { name: p.displayName })}
                   </p>
                 </div>
                 <span className="text-xs text-wedding-on-surface-variant shrink-0">
-                  {relativeTime(p.createdAt)}
+                  {timeAgo(p.createdAt, t)}
                 </span>
               </li>
             ))}

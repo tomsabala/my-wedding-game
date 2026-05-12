@@ -1,10 +1,12 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 
 export default function SignOutButton() {
+  const t = useTranslations('dashboard')
   const router = useRouter()
   const supabase = createClient()
 
@@ -15,7 +17,7 @@ export default function SignOutButton() {
 
   return (
     <Button variant="ghost" size="sm" onClick={signOut} className="text-wedding-on-surface-variant">
-      יציאה
+      {t('signOut')}
     </Button>
   )
 }

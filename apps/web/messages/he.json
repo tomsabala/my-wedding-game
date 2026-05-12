@@ -53,6 +53,32 @@
     "players": "שחקנים",
     "editGame": "ערוך משחק",
     "back": "חזרה",
+    "signOut": "יציאה",
+    "tabs": {
+      "overview": "סקירה",
+      "questions": "שאלות",
+      "passingCards": "כרטיסיות",
+      "media": "מדיה",
+      "settings": "הגדרות"
+    },
+    "overview": {
+      "playersCount": "{count} שחקנים",
+      "qrPlaceholder": "קוד QR יופיע לאחר פרסום המשחק",
+      "activityTitle": "עדכונים אחרונים",
+      "activityEmpty": "אין פעילות עדיין. שתפו את הקישור עם האורחים!",
+      "playerJoined": "{name} הצטרף למשחק",
+      "minutesAgo": "לפני {n} דקות",
+      "hoursAgo": "לפני {n} שעות",
+      "daysAgo": "לפני {n} ימים"
+    },
+    "gameStats": {
+      "questions": "שאלות",
+      "progressToward": "התקדמות לעבר {target} שאלות",
+      "joinedSoFar": "{n} שחקנים הצטרפו עד כה"
+    },
+    "qr": {
+      "label": "קוד QR של המשחק"
+    },
     "deploy": {
       "button": "פרסם משחק",
       "undeploy": "הורד מהאוויר",
@@ -90,5 +116,118 @@
       "comingSoon": "תצוגה מקדימה תגיע בקרוב",
       "back": "חזרה"
     }
+  },
+  "questions": {
+    "title": "שאלות הטריוויה",
+    "subtitle": "ניהול השאלות למשחק החתונה שלכם",
+    "tip": "שמרו על שאלות קצרות וקריאות, עם 4 אפשרויות מובחנות.",
+    "add": "הוסף שאלה",
+    "addTitle": "שאלה חדשה",
+    "editTitle": "עריכת שאלה",
+    "save": "שמור שאלה",
+    "cancel": "ביטול",
+    "edit": "ערוך",
+    "delete": "מחק",
+    "questionText": "טקסט השאלה",
+    "optionA": "אפשרות א׳",
+    "optionB": "אפשרות ב׳",
+    "optionC": "אפשרות ג׳",
+    "optionD": "אפשרות ד׳",
+    "correctAnswer": "סמנו את התשובה הנכונה",
+    "position": "שאלה {n}",
+    "empty": "אין עדיין שאלות. הוסיפו את השאלה הראשונה!",
+    "deleteConfirm": "בטוח שרוצים למחוק שאלה זו?",
+    "errors": {
+      "textRequired": "יש להזין טקסט לשאלה",
+      "optionsRequired": "יש למלא את כל 4 האפשרויות"
+    }
+  },
+  "passingCards": {
+    "title": "כרטיסיות מעבר",
+    "subtitle": "ידעת? | תמונה | וידאו — שיופיעו בין השאלות",
+    "add": "הוסף כרטיסייה",
+    "addTitle": "כרטיסייה חדשה",
+    "editTitle": "עריכת כרטיסייה",
+    "save": "שמור כרטיסייה",
+    "saveOrder": "שמור סדר",
+    "orderSaved": "הסדר נשמר",
+    "cancel": "ביטול",
+    "edit": "ערוך",
+    "delete": "מחק",
+    "drag": "גרור לסידור מחדש",
+    "type": "סוג הכרטיסייה",
+    "typeDidYouKnow": "ידעת?",
+    "typePhoto": "תמונה",
+    "typeVideo": "וידאו",
+    "content": "טקסט הכרטיסייה",
+    "afterQuestionLabel": "מופיע אחרי",
+    "afterQuestion": "אחרי שאלה {n}",
+    "atEnd": "בסוף המשחק",
+    "mediaHint": "העלאת קבצים תופעל בקרוב — בינתיים תארו את התמונה/וידאו בטקסט.",
+    "empty": "אין עדיין כרטיסיות. הוסיפו את הראשונה!",
+    "deleteConfirm": "בטוח שרוצים למחוק כרטיסייה זו?",
+    "errors": {
+      "contentRequired": "יש להזין תוכן לכרטיסייה"
+    }
+  },
+  "media": {
+    "title": "מדיה",
+    "subtitle": "תמונות וסרטונים מהזוג שיוצגו בכרטיסיות המעבר",
+    "upload": "העלה מדיה",
+    "delete": "מחק",
+    "deleteConfirm": "בטוח שרוצים למחוק את הקובץ?",
+    "storage": "אחסון",
+    "empty": "לא הועלתה מדיה עדיין"
+  },
+  "player": {
+    "welcomeKicker": "ברוכים הבאים",
+    "welcomeHeading": "ברוכים הבאים למשחק הטריוויה של {coupleNames}!",
+    "nQuestions": "{n} שאלות",
+    "prizes": "פרסים",
+    "didYouKnow": "ידעת?",
+    "yourName": "השם שלך",
+    "namePlaceholder": "איך לקרוא לך?",
+    "startPlaying": "התחל לשחק",
+    "gameNotLive": "המשחק לא פעיל",
+    "checkBackLater": "בקרו שוב מאוחר יותר.",
+    "errors": {
+      "nameRequired": "יש להזין שם"
+    }
+  },
+  "game": {
+    "question": "שאלה {current} מתוך {total}",
+    "score": "{score} נקודות",
+    "lockAnswer": "נעל תשובה",
+    "hint": "רמז",
+    "nextQuestion": "לשאלה הבאה",
+    "didYouKnow": "ידעת?",
+    "aMoment": "רגע",
+    "chapter": "פרק {n}",
+    "congratulations": "מזל טוב!",
+    "finalizing": "מסכמים את הניקוד...",
+    "fullRanking": "דירוג מלא",
+    "participants": "{n} משתתפים",
+    "correctCount": "{n} תשובות נכונות",
+    "viewAll": "הצג את כל המשתתפים",
+    "you": "אתה/את",
+    "play": "משחק",
+    "rankings": "דירוג",
+    "myScore": "הניקוד שלי",
+    "answerA": "א׳",
+    "answerB": "ב׳",
+    "answerC": "ג׳",
+    "answerD": "ד׳"
+  },
+  "settings": {
+    "title": "הגדרות המשחק",
+    "subtitle": "ערכו את פרטי החתונה. השינויים נשמרים מיד.",
+    "save": "שמור שינויים",
+    "saved": "נשמר",
+    "dangerZone": "אזור מסוכן",
+    "deleteDescription": "מחיקת המשחק תסיר את כל השאלות, הכרטיסיות והשחקנים. פעולה זו אינה הפיכה.",
+    "delete": "מחק משחק",
+    "deleteConfirm": "בטוח שרוצים למחוק את המשחק?",
+    "deleteConfirmYes": "כן, מחק",
+    "deleteConfirmNo": "ביטול"
   }
 }
