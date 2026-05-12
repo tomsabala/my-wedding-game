@@ -1,30 +1,15 @@
 import SignOutButton from './SignOutButton'
 
-type Props = { color: string; text: string; accent: string }
-
-export default function DashboardNav({ color, text, accent }: Props) {
+export default function DashboardNav() {
   return (
     <header
-      className="flex items-center justify-between px-6"
-      style={{
-        backgroundColor: color,
-        height: 'var(--dashboard-nav-height)',
-        borderBottom: '1px solid rgba(255,255,255,0.2)',
-      }}
+      className="flex items-center justify-between px-6 bg-wedding-surface border-b border-wedding-outline-variant"
+      style={{ height: 'var(--dashboard-nav-height)' }}
     >
-      <span className="text-base font-extrabold tracking-tight">
-        <span style={{ color: text }}>Our </span>
-        <span style={{ color: accent }}>Wedding</span>
-        <span style={{ color: text }}> Game</span>
+      <span className="font-serif text-lg font-semibold tracking-tight text-wedding-primary">
+        Our Wedding Game
       </span>
-      <SignOutButton
-        style={{
-          background: 'rgba(255,255,255,0.18)',
-          border: '1px solid rgba(255,255,255,0.4)',
-          color: 'white',
-          fontWeight: 600,
-        }}
-      />
+      <SignOutButton />
     </header>
   )
 }

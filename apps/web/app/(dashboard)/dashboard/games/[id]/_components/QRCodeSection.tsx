@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import QRCode from 'react-qr-code'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
@@ -8,18 +8,17 @@ import { Button } from '@/components/ui/button'
 type Props = { slug: string }
 
 export default function QRCodeSection({ slug }: Props) {
-  const t = useTranslations('dashboard.deploy')
+  const t = useTranslations('dashboard')
   const containerRef = useRef<HTMLDivElement>(null)
+  const [copied, setCopied] = useState(false)
   const url = typeof window !== 'undefined' ? `${window.location.origin}/${slug}` : `/${slug}`
 
   function downloadPng() {
     const svgEl = containerRef.current?.querySelector('svg')
     if (!svgEl) return
-
     const svgString = new XMLSerializer().serializeToString(svgEl)
     const blob = new Blob([svgString], { type: 'image/svg+xml' })
     const blobUrl = URL.createObjectURL(blob)
-
     const img = new Image()
     img.onload = () => {
       const canvas = document.createElement('canvas')
@@ -43,14 +42,28 @@ export default function QRCodeSection({ slug }: Props) {
     img.src = blobUrl
   }
 
+  function copyLink() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
   return (
     <div className="flex flex-col items-center gap-4">
-      <div ref={containerRef} className="rounded-lg border p-4 bg-white">
-        <QRCode value={url} size={160} />
+      <p className="text-sm font-medium text-wedding-on-surface-variant self-start">{t('qr.label')}</p>
+      <div ref={containerRef} className="rounded-xl border border-wedding-outline-variant p-4 bg-white">
+        <QRCode value={url} size={140} />
       </div>
-      <Button variant="outline" size="sm" onClick={downloadPng}>
-        {t('downloadQr')}
-      </Button>
+      <p className="text-xs text-wedding-on-surface-variant break-all text-center">{url}</p>
+      <div className="flex gap-2 w-full">
+        <Button variant="outline" size="sm" className="flex-1" onClick={downloadPng}>
+          {t('deploy.downloadQr')}
+        </Button>
+        <Button variant="outline" size="sm" className="flex-1" onClick={copyLink}>
+          {copied ? t('deploy.linkCopied') : t('deploy.copyLink')}
+        </Button>
+      </div>
     </div>
   )
 }
