@@ -70,13 +70,14 @@
 
   --font-sans: var(--font-jakarta);
   --font-serif: var(--font-playfair);
+  --font-hebrew: var(--font-heebo);
   --radius-md: var(--radius-md);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans, 'Plus Jakarta Sans', Arial, Helvetica, sans-serif);
+  font-family: var(--font-jakarta), var(--font-heebo), 'Plus Jakarta Sans', 'Heebo', system-ui, sans-serif;
 }
 
 /* ─── Dashboard design tokens ─────────────────────────────────────────────── */
@@ -99,35 +100,35 @@ body {
 
 /* ─── Auth page design tokens ──────────────────────────────────────────────── */
 :root {
-  --auth-font-family: var(--font-jakarta, 'Plus Jakarta Sans', sans-serif);
-  --auth-heading-size: 23px;
-  --auth-heading-weight: 600;
+  --auth-font-family: var(--font-jakarta), var(--font-heebo), 'Plus Jakarta Sans', 'Heebo', sans-serif;
+  --auth-heading-size: 22px;
+  --auth-heading-weight: 700;
   --auth-body-size: 14px;
-  --auth-label-size: 13px;
-  --auth-letter-spacing: 0px;
+  --auth-label-size: 12px;
+  --auth-letter-spacing: 0.04em;
 
   --auth-input-radius: 8px;
-  --auth-input-height: 42px;
+  --auth-input-height: 44px;
   --auth-input-padding: 12px;
   --auth-input-border-width: 1px;
-  --auth-input-border-color: #ffffff;
-  --auth-input-font-size: 15px;
+  --auth-input-border-color: var(--wedding-outline-variant);
+  --auth-input-font-size: 14px;
 
-  --auth-btn-radius: 8px;
-  --auth-btn-height: 42px;
+  --auth-btn-radius: 9999px;
+  --auth-btn-height: 44px;
   --auth-btn-weight: 600;
-  --auth-btn-font-size: 14px;
+  --auth-btn-font-size: 15px;
   --auth-btn-letter-spacing: 0px;
 
-  --auth-card-radius: 16px;
+  --auth-card-radius: 20px;
   --auth-card-padding: 32px;
-  --auth-card-shadow: 0 20px 60px rgba(0, 0, 0, 0.22), 0 4px 16px rgba(0, 0, 0, 0.12);
+  --auth-card-shadow: 0 8px 32px rgba(123, 84, 85, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
 
-  --auth-heading-color: #ffffff;
-  --auth-body-color: #ffffff;
-  --auth-link-color: #000000;
-  --auth-error-color: #ff0000;
-  --auth-placeholder-color: #ffffff;
+  --auth-heading-color: var(--wedding-primary);
+  --auth-body-color: var(--wedding-on-surface-variant);
+  --auth-link-color: var(--wedding-primary);
+  --auth-error-color: var(--wedding-error);
+  --auth-placeholder-color: var(--wedding-outline);
 }
 
 /* ─── Auth form scope ──────────────────────────────────────────────────────── */
@@ -141,7 +142,7 @@ body {
   font-size: var(--auth-heading-size);
   font-weight: var(--auth-heading-weight);
   color: var(--auth-heading-color);
-  letter-spacing: var(--auth-letter-spacing);
+  letter-spacing: 0;
 }
 
 .auth-form p {
@@ -155,7 +156,10 @@ body {
 
 .auth-form [data-slot="label"] {
   font-size: var(--auth-label-size);
-  color: var(--auth-heading-color);
+  font-weight: 700;
+  letter-spacing: var(--auth-letter-spacing);
+  text-transform: uppercase;
+  color: var(--auth-body-color);
 }
 
 .auth-form [data-slot="input"] {
@@ -167,18 +171,18 @@ body {
   border-color: var(--auth-input-border-color);
   font-size: var(--auth-input-font-size);
   font-family: var(--auth-font-family);
-  background: rgba(255, 255, 255, 0.2);
-  color: var(--auth-heading-color);
+  background: var(--wedding-surface-low);
+  color: var(--wedding-on-surface);
 }
 
 .auth-form [data-slot="input"]::placeholder {
   color: var(--auth-placeholder-color);
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 .auth-form [data-slot="input"]:focus {
-  border-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+  border-color: var(--wedding-primary);
+  box-shadow: 0 0 0 3px rgba(123, 84, 85, 0.15);
   outline: none;
 }
 
@@ -190,29 +194,29 @@ body {
   font-size: var(--auth-btn-font-size);
   letter-spacing: var(--auth-btn-letter-spacing);
   font-family: var(--auth-font-family);
-  background: rgba(0, 0, 0, 0.82);
+  background: linear-gradient(135deg, var(--wedding-primary) 0%, #a67c7d 100%);
   color: #ffffff;
   border-color: transparent;
 }
 
 .auth-form [data-slot="button"][type="submit"]:hover {
-  background: rgba(0, 0, 0, 0.72);
+  background: linear-gradient(135deg, #6a4647 0%, #956a6b 100%);
 }
 
 /* Google / outline button */
 .auth-form [data-slot="button"][type="button"] {
   height: var(--auth-btn-height);
-  border-radius: var(--auth-btn-radius);
+  border-radius: 8px;
   font-weight: var(--auth-btn-weight);
   font-size: var(--auth-btn-font-size);
   font-family: var(--auth-font-family);
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.55);
-  color: var(--auth-link-color);
+  background: #ffffff;
+  border-color: var(--wedding-outline-variant);
+  color: var(--wedding-on-surface);
 }
 
 .auth-form [data-slot="button"][type="button"]:hover {
-  background: rgba(255, 255, 255, 0.32);
+  background: var(--wedding-surface-low);
 }
 
 /* Error messages */
