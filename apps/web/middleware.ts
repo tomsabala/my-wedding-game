@@ -8,7 +8,15 @@ type CookieToSet = { name: string; value: string; options: CookieOptions }
 const SLUG_RE = /^\/[a-z]{3}(\/.*)?$/
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+  // Strip any client-supplied x-user-id to prevent header injection.
+  // We set it ourselves below after getUser() succeeds so RSCs can skip
+  // the redundant second Supabase network call.
+  const forwardedHeaders = new Headers(request.headers)
+  forwardedHeaders.delete('x-user-id')
+
+  // Collect cookies that Supabase wants to refresh so we can apply them
+  // to the final response after we know the user ID.
+  const pendingCookies: CookieToSet[] = []
 
   const supabase = createServerClient(
     process.env['NEXT_PUBLIC_SUPABASE_URL']!,
@@ -19,12 +27,9 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet: CookieToSet[]) {
+          // Keep request cookies up-to-date for the current execution
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            supabaseResponse.cookies.set(name, value, options as any),
-          )
+          pendingCookies.push(...cookiesToSet)
         },
       },
     },
@@ -34,6 +39,21 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  // Stamp the verified user ID so RSCs can use getSession() (cookie read,
+  // no network) instead of calling getUser() again.
+  if (user) {
+    forwardedHeaders.set('x-user-id', user.id)
+  }
+
+  // Build the final response forwarding our headers to the RSC layer
+  const response = NextResponse.next({ request: { headers: forwardedHeaders } })
+
+  // Apply any cookie refreshes Supabase requested
+  pendingCookies.forEach(({ name, value, options }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    response.cookies.set(name, value, options as any),
+  )
 
   const { pathname } = request.nextUrl
 
@@ -57,7 +77,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  return supabaseResponse
+  return response
 }
 
 export const config = {
