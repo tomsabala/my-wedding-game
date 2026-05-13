@@ -2,6 +2,7 @@ import { prisma } from '@repo/db'
 import type { PassingCardType } from '@repo/shared'
 
 import { getPassingCards } from '@/app/actions/passingCards'
+import { PerfMount } from '@/components/perf-mount'
 import PassingCardsList from './_components/PassingCardsList'
 
 type Props = { params: Promise<{ id: string }> }
@@ -10,22 +11,28 @@ export default async function PassingCardsPage({ params }: Props) {
   const t0 = performance.now()
   const { id } = await params
 
+  // getPassingCards includes an assertGameOwner ownership check (extra DB round trip)
+  const tCards = performance.now()
   const [cards, questionCount] = await Promise.all([
     getPassingCards(id),
     prisma.question.count({ where: { gameId: id } }),
   ])
-  console.log(`[perf] PassingCardsPage total render data fetch: ${(performance.now() - t0).toFixed(1)}ms`)
+  console.log(`[perf-server] PassingCardsPage parallel fetch: ${(performance.now() - tCards).toFixed(1)}ms  cards=${cards.length} questionCount=${questionCount}`)
+  console.log(`[perf-server] PassingCardsPage total: ${(performance.now() - t0).toFixed(1)}ms`)
 
   return (
-    <PassingCardsList
-      gameId={id}
-      initialCards={cards.map((c) => ({
-        id: c.id,
-        type: c.type as PassingCardType,
-        content: c.content,
-        afterQuestionPosition: c.afterQuestionPosition,
-      }))}
-      questionCount={questionCount}
-    />
+    <>
+      <PerfMount label="PassingCardsPage" />
+      <PassingCardsList
+        gameId={id}
+        initialCards={cards.map((c) => ({
+          id: c.id,
+          type: c.type as PassingCardType,
+          content: c.content,
+          afterQuestionPosition: c.afterQuestionPosition,
+        }))}
+        questionCount={questionCount}
+      />
+    </>
   )
 }

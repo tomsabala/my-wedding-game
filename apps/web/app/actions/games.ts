@@ -65,11 +65,11 @@ export async function getGame(id: string) {
       _count: { select: { questions: true, players: true } },
     },
   })
-  console.log(`[perf] getGame findUnique: ${(performance.now() - tFindUnique).toFixed(1)}ms`)
+  console.log(`[perf-server] getGame — DB query: ${(performance.now() - tFindUnique).toFixed(1)}ms`)
 
   if (!game || game.userId !== user.id) notFound()
 
-  console.log(`[perf] getGame total: ${(performance.now() - t0).toFixed(1)}ms`)
+  console.log(`[perf-server] getGame total: ${(performance.now() - t0).toFixed(1)}ms`)
   return {
     id: game.id,
     userId: game.userId,
@@ -98,7 +98,7 @@ export async function getGameForSettings(id: string) {
     where: { id },
     select: { id: true, userId: true, coupleNames: true, weddingDate: true, tagline: true },
   })
-  console.log(`[perf] getGameForSettings: ${(performance.now() - t0).toFixed(1)}ms`)
+  console.log(`[perf-server] getGameForSettings: ${(performance.now() - t0).toFixed(1)}ms`)
   if (!game || game.userId !== user.id) notFound()
   return {
     id: game.id,

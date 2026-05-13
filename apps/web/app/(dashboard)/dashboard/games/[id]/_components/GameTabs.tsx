@@ -5,6 +5,12 @@ import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
+declare global {
+  interface Window {
+    __tabClickTime?: number
+  }
+}
+
 type Tab = { href: string; label: string; icon: string; exact?: boolean }
 
 export default function GameTabs({ id }: { id: string }) {
@@ -27,6 +33,10 @@ export default function GameTabs({ id }: { id: string }) {
           <Link
             key={tab.href}
             href={tab.href}
+            onClick={() => {
+              window.__tabClickTime = performance.now()
+              console.log(`[perf-click] tab="${tab.label}" href="${tab.href}"`)
+            }}
             className={cn(
               'flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors',
               isActive

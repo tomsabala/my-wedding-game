@@ -18,14 +18,13 @@ type QuestionRow = {
 
 export async function getQuestions(gameId: string): Promise<QuestionRow[]> {
   const t0 = performance.now()
-  await assertGameOwner(gameId)
+  await assertGameOwner(gameId) // ownership check — see assertGameOwner log above
   const tQuery = performance.now()
   const rows = await prisma.question.findMany({
     where: { gameId },
     orderBy: { position: 'asc' },
   })
-  console.log(`[perf] getQuestions DB query: ${(performance.now() - tQuery).toFixed(1)}ms`)
-  console.log(`[perf] getQuestions total: ${(performance.now() - t0).toFixed(1)}ms`)
+  console.log(`[perf-server] getQuestions — main DB query: ${(performance.now() - tQuery).toFixed(1)}ms  total (incl assertGameOwner): ${(performance.now() - t0).toFixed(1)}ms`)
   return rows.map((q) => ({
     id: q.id,
     gameId: q.gameId,

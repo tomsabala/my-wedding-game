@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import { getGame } from '@/app/actions/games'
+import { PerfMount } from '@/components/perf-mount'
 import DeploySection from './_components/DeploySection'
 import QRCodeSection from './_components/QRCodeSection'
 import GameStats from './_components/GameStats'
@@ -22,7 +23,7 @@ export default async function GameDetailPage({ params }: Props) {
   const t0 = performance.now()
   const { id } = await params
   const [game, t] = await Promise.all([getGame(id), getTranslations('dashboard')])
-  console.log(`[perf] GameDetailPage (overview) total data fetch: ${(performance.now() - t0).toFixed(1)}ms`)
+  console.log(`[perf-server] GameDetailPage (overview) total: ${(performance.now() - t0).toFixed(1)}ms`)
 
   const weddingDate = new Intl.DateTimeFormat('he-IL', { dateStyle: 'long' }).format(
     new Date(game.weddingDate),
@@ -34,6 +35,7 @@ export default async function GameDetailPage({ params }: Props) {
 
   return (
     <div className="space-y-5">
+      <PerfMount label="GameDetailPage" />
       {/* ── Header card ───────────────────────────────────────────────────── */}
       <div className="rounded-2xl bg-wedding-surface border border-wedding-outline-variant p-6">
         <div className="flex items-start justify-between gap-4">
