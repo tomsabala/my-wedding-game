@@ -6,8 +6,8 @@ import { useTranslations } from 'next-intl'
 import { calculateQuestionScore } from '@repo/shared'
 import type { PassingCardType } from '@repo/shared'
 import { Button } from '@/components/ui/button'
-import AnswerTile from '@/app/[slug]/play/_components/AnswerTile'
-import TimerBar from '@/app/[slug]/play/_components/TimerBar'
+import AnswerTile from '@/components/game/AnswerTile'
+import TimerBar from '@/components/game/TimerBar'
 
 const QUESTION_DURATION_MS = 30_000
 const FEEDBACK_DELAY_MS = 700
