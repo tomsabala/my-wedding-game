@@ -8,17 +8,17 @@ export const createGameSchema = z.object({
   tagline: z.string().max(200).nullable().optional(),
 })
 
-export const questionSchema = z.object({
-  text: z.string().min(1).max(500),
-  options: z.tuple([
-    z.string().min(1).max(200),
-    z.string().min(1).max(200),
-    z.string().min(1).max(200),
-    z.string().min(1).max(200),
-  ]),
-  correctIndex: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
-  position: z.number().int().min(0),
-})
+export const questionSchema = z
+  .object({
+    text: z.string().min(1).max(500),
+    options: z.array(z.string().min(1).max(200)).min(2).max(5),
+    correctIndex: z.number().int().min(0),
+    position: z.number().int().min(0),
+  })
+  .refine((d) => d.correctIndex < d.options.length, {
+    message: 'correctIndex must be within options range',
+    path: ['correctIndex'],
+  })
 
 export const passingCardSchema = z.object({
   type: z.enum(['DID_YOU_KNOW', 'PHOTO', 'VIDEO']),
@@ -37,7 +37,7 @@ export const submitScoreSchema = z.object({
   answers: z.array(
     z.object({
       questionId: z.string().uuid(),
-      selectedIndex: z.number().int().min(0).max(3),
+      selectedIndex: z.number().int().min(0).max(4),
       isCorrect: z.boolean(),
       timeTakenMs: z.number().int().min(0),
     }),

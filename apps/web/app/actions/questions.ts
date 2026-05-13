@@ -11,8 +11,8 @@ type QuestionRow = {
   id: string
   gameId: string
   text: string
-  options: [string, string, string, string]
-  correctIndex: 0 | 1 | 2 | 3
+  options: string[]
+  correctIndex: number
   position: number
 }
 
@@ -30,8 +30,8 @@ export async function getQuestions(gameId: string): Promise<QuestionRow[]> {
     id: q.id,
     gameId: q.gameId,
     text: q.text,
-    options: q.options as [string, string, string, string],
-    correctIndex: q.correctIndex as 0 | 1 | 2 | 3,
+    options: q.options as string[],
+    correctIndex: q.correctIndex,
     position: q.position,
   }))
 }
