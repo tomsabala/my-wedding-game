@@ -108,6 +108,39 @@ export async function getGameForSettings(id: string) {
   }
 }
 
+export async function getGameForPreview(id: string) {
+  const user = await getAuthUser()
+  const game = await prisma.game.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      userId: true,
+      coupleNames: true,
+      questions: {
+        select: { id: true, text: true, options: true, correctIndex: true, position: true },
+        orderBy: { position: 'asc' },
+      },
+      passingCards: {
+        select: { id: true, type: true, content: true, afterQuestionPosition: true },
+        orderBy: [{ afterQuestionPosition: 'asc' }],
+      },
+    },
+  })
+  if (!game || game.userId !== user.id) notFound()
+  return {
+    id: game.id,
+    coupleNames: game.coupleNames,
+    questions: game.questions.map((q) => ({
+      id: q.id,
+      text: q.text,
+      options: q.options as string[],
+      correctIndex: q.correctIndex,
+      position: q.position,
+    })),
+    passingCards: game.passingCards,
+  }
+}
+
 export async function deployGame(id: string): Promise<ActionResult> {
   const user = await getAuthUser()
 

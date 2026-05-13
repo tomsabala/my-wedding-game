@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
@@ -38,6 +39,14 @@ export default function DeploySection({ game }: Props) {
 
   return (
     <div className="flex flex-col items-end gap-2">
+      <Link href={`/preview/${game.id}`}>
+        <Button variant="outline" size="sm">
+          <span className="material-symbols-rounded" style={{ fontSize: '18px', lineHeight: 1 }}>
+            preview
+          </span>
+          {t('preview')}
+        </Button>
+      </Link>
       {game.status === 'DRAFT' ? (
         <>
           {game._count.questions < 3 && (
