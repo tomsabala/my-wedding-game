@@ -16,8 +16,8 @@ import {
 type Question = {
   id: string
   text: string
-  options: [string, string, string, string]
-  correctIndex: 0 | 1 | 2 | 3
+  options: string[]
+  correctIndex: number
   position: number
 }
 
@@ -28,9 +28,13 @@ type Props = {
 
 type FormState = {
   text: string
-  options: [string, string, string, string]
-  correctIndex: 0 | 1 | 2 | 3
+  options: string[]
+  correctIndex: number
 }
+
+const OPTION_LABELS = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳']
+const MIN_OPTIONS = 2
+const MAX_OPTIONS = 5
 
 const EMPTY_FORM: FormState = {
   text: '',
@@ -231,6 +235,9 @@ export default function QuestionsList({ gameId, initialQuestions }: Props) {
                       >
                         {i === q.correctIndex ? 'check_circle' : 'radio_button_unchecked'}
                       </span>
+                      <span className="text-xs font-semibold text-wedding-on-surface-variant w-5 shrink-0">
+                        {OPTION_LABELS[i]}
+                      </span>
                       <span className="text-wedding-on-surface">{opt}</span>
                     </li>
                   ))}
@@ -261,16 +268,24 @@ function QuestionForm({
 }) {
   const t = useTranslations('questions')
   const [text, setText] = useState(initial.text)
-  const [options, setOptions] = useState<[string, string, string, string]>(initial.options)
-  const [correctIndex, setCorrectIndex] = useState<0 | 1 | 2 | 3>(initial.correctIndex)
+  const [options, setOptions] = useState<string[]>(initial.options)
+  const [correctIndex, setCorrectIndex] = useState<number>(initial.correctIndex)
   const [localError, setLocalError] = useState<string | null>(null)
 
-  function handleOption(i: 0 | 1 | 2 | 3, value: string) {
-    setOptions((prev) => {
-      const next = [...prev] as [string, string, string, string]
-      next[i] = value
-      return next
-    })
+  function handleOption(i: number, value: string) {
+    setOptions((prev) => prev.map((o, idx) => (idx === i ? value : o)))
+  }
+
+  function addOption() {
+    if (options.length >= MAX_OPTIONS) return
+    setOptions((prev) => [...prev, ''])
+  }
+
+  function removeOption(i: number) {
+    if (options.length <= MIN_OPTIONS) return
+    setOptions((prev) => prev.filter((_, idx) => idx !== i))
+    if (correctIndex === i) setCorrectIndex(0)
+    else if (correctIndex > i) setCorrectIndex((prev) => prev - 1)
   }
 
   function submit(e: React.FormEvent) {
@@ -286,8 +301,6 @@ function QuestionForm({
     }
     onSubmit({ text: text.trim(), options, correctIndex })
   }
-
-  const optionLabels = [t('optionA'), t('optionB'), t('optionC'), t('optionD')]
 
   return (
     <form
@@ -314,8 +327,7 @@ function QuestionForm({
         <legend className="text-sm font-medium text-wedding-on-surface">
           {t('correctAnswer')}
         </legend>
-        {optionLabels.map((label, idx) => {
-          const i = idx as 0 | 1 | 2 | 3
+        {options.map((opt, i) => {
           const isCorrect = correctIndex === i
           return (
             <label
@@ -333,18 +345,42 @@ function QuestionForm({
                 onChange={() => setCorrectIndex(i)}
                 className="accent-wedding-tertiary shrink-0"
               />
-              <span className="text-sm font-semibold text-wedding-on-surface w-10 shrink-0">
-                {label}
+              <span className="text-sm font-semibold text-wedding-on-surface w-8 shrink-0">
+                {OPTION_LABELS[i]}
               </span>
               <Input
-                value={options[i]}
+                value={opt}
                 onChange={(e) => handleOption(i, e.target.value)}
                 maxLength={200}
                 className="flex-1"
               />
+              {options.length > MIN_OPTIONS && (
+                <button
+                  type="button"
+                  onClick={() => removeOption(i)}
+                  className="shrink-0 text-wedding-outline hover:text-destructive transition-colors"
+                  aria-label={t('removeOption')}
+                >
+                  <span className="material-symbols-rounded" style={{ fontSize: '18px', lineHeight: 1 }}>
+                    remove_circle
+                  </span>
+                </button>
+              )}
             </label>
           )
         })}
+        {options.length < MAX_OPTIONS && (
+          <button
+            type="button"
+            onClick={addOption}
+            className="flex items-center gap-1.5 text-sm text-wedding-primary hover:text-wedding-primary/80 transition-colors pt-1"
+          >
+            <span className="material-symbols-rounded" style={{ fontSize: '18px', lineHeight: 1 }}>
+              add_circle
+            </span>
+            {t('addOption')}
+          </button>
+        )}
       </fieldset>
 
       {localError && <p className="text-xs text-destructive">{localError}</p>}

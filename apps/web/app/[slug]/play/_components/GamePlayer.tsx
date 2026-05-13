@@ -212,7 +212,7 @@ function QuestionRound({
   }, [])
 
   const optionLabels = useMemo(
-    () => [t('answerA'), t('answerB'), t('answerC'), t('answerD')],
+    () => [t('answerA'), t('answerB'), t('answerC'), t('answerD'), t('answerE')],
     [t],
   )
 
