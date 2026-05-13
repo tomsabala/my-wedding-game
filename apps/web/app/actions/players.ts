@@ -142,13 +142,14 @@ export async function getGameForPlay(slug: string): Promise<PlayGame | null> {
 export async function getPassingCard(slug: string, cardId: string) {
   const card = await prisma.passingCard.findFirst({
     where: { id: cardId, game: { slug, status: 'LIVE' } },
-    select: { id: true, type: true, content: true, afterQuestionPosition: true },
+    select: { id: true, type: true, content: true, layout: true, afterQuestionPosition: true },
   })
   if (!card) return null
   return {
     id: card.id,
     type: card.type as PassingCardType,
     content: card.content,
+    layout: card.layout as import('@repo/shared').CardLayout | null,
     afterQuestionPosition: card.afterQuestionPosition,
   }
 }
