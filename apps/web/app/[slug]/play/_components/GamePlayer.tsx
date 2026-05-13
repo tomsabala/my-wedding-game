@@ -15,8 +15,8 @@ import {
   type StoredPlayer,
   type StoredProgress,
 } from '@/lib/player-storage'
-import AnswerTile from './AnswerTile'
-import TimerBar from './TimerBar'
+import AnswerTile from '@/components/game/AnswerTile'
+import TimerBar from '@/components/game/TimerBar'
 import GameNav from './GameNav'
 
 const QUESTION_DURATION_MS = 30_000

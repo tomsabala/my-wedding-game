@@ -9,19 +9,17 @@ export type ActionResult<T = void> = T extends void
   ? { success: true } | { success: false; error: string }
   : { success: true; data: T } | { success: false; error: string }
 
-// getSession() reads from the cookie — no Supabase network round trip.
-// The middleware calls getUser() on every request and writes a fresh session cookie,
-// so by the time we reach an RSC the cookie is already validated.
-// Wrapped in React cache() so multiple callers within one render pay the cost once.
+// Wrapped in React cache() so multiple callers within one render tree pay the
+// Supabase network round trip only once.
 export const getAuthUser = cache(async (): Promise<User> => {
   const t0 = performance.now()
   const supabase = await createClient()
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  console.log(`[perf-server] getAuthUser (cookie read): ${(performance.now() - t0).toFixed(1)}ms`)
-  if (!session?.user) throw new Error('Unauthorized')
-  return session.user
+    data: { user },
+  } = await supabase.auth.getUser()
+  console.log(`[perf-server] getAuthUser (getUser network call): ${(performance.now() - t0).toFixed(1)}ms`)
+  if (!user) throw new Error('Unauthorized')
+  return user
 })
 
 /**
