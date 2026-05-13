@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
 import { Heebo, Playfair_Display, Plus_Jakarta_Sans } from 'next/font/google'
-import { NextIntlClientProvider } from 'next-intl'
-import { getMessages } from 'next-intl/server'
 
 import './globals.css'
 
@@ -28,18 +26,14 @@ export const metadata: Metadata = {
   description: 'צרו את משחק הטריוויה המותאם אישית לחתונה שלכם.',
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const messages = await getMessages()
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="he"
       dir="rtl"
       className={`${playfair.variable} ${jakarta.variable} ${heebo.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   )
 }
