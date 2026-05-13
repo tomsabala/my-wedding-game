@@ -8,11 +8,16 @@ import { revalidatePath } from 'next/cache'
 import { assertGameOwner, getAuthUser, type ActionResult } from '@/lib/actions'
 
 export async function getPassingCards(gameId: string) {
+  const t0 = performance.now()
   await assertGameOwner(gameId)
-  return prisma.passingCard.findMany({
+  const tQuery = performance.now()
+  const result = await prisma.passingCard.findMany({
     where: { gameId },
     orderBy: [{ afterQuestionPosition: 'asc' }],
   })
+  console.log(`[perf] getPassingCards DB query: ${(performance.now() - tQuery).toFixed(1)}ms`)
+  console.log(`[perf] getPassingCards total: ${(performance.now() - t0).toFixed(1)}ms`)
+  return result
 }
 
 export async function createPassingCard(

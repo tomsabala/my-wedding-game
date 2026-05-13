@@ -51,8 +51,10 @@ export async function createGame(
 }
 
 export async function getGame(id: string) {
+  const t0 = performance.now()
   const user = await getAuthUser()
 
+  const tFindUnique = performance.now()
   const game = await prisma.game.findUnique({
     where: { id },
     include: {
@@ -64,9 +66,11 @@ export async function getGame(id: string) {
       _count: { select: { questions: true, players: true } },
     },
   })
+  console.log(`[perf] getGame findUnique: ${(performance.now() - tFindUnique).toFixed(1)}ms`)
 
   if (!game || game.userId !== user.id) notFound()
 
+  const tGroupBy = performance.now()
   const [totals, corrects] = await Promise.all([
     prisma.playerAnswer.groupBy({
       by: ['questionId'],
@@ -79,6 +83,7 @@ export async function getGame(id: string) {
       _count: { _all: true },
     }),
   ])
+  console.log(`[perf] getGame groupBy (answer stats): ${(performance.now() - tGroupBy).toFixed(1)}ms`)
 
   const questionStats = game.questions.map((q) => ({
     questionId: q.id,
@@ -87,6 +92,7 @@ export async function getGame(id: string) {
     correct: corrects.find((c) => c.questionId === q.id)?._count._all ?? 0,
   }))
 
+  console.log(`[perf] getGame total: ${(performance.now() - t0).toFixed(1)}ms`)
   return {
     id: game.id,
     userId: game.userId,

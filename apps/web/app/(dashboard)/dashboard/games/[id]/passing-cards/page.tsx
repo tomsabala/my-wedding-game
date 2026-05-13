@@ -7,12 +7,14 @@ import PassingCardsList from './_components/PassingCardsList'
 type Props = { params: Promise<{ id: string }> }
 
 export default async function PassingCardsPage({ params }: Props) {
+  const t0 = performance.now()
   const { id } = await params
 
   const [cards, questionCount] = await Promise.all([
     getPassingCards(id),
     prisma.question.count({ where: { gameId: id } }),
   ])
+  console.log(`[perf] PassingCardsPage total render data fetch: ${(performance.now() - t0).toFixed(1)}ms`)
 
   return (
     <PassingCardsList

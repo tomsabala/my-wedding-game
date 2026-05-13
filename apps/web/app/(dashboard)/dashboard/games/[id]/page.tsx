@@ -19,8 +19,10 @@ function timeAgo(iso: string, t: RelativeTimeFn): string {
 }
 
 export default async function GameDetailPage({ params }: Props) {
+  const t0 = performance.now()
   const { id } = await params
   const [game, t] = await Promise.all([getGame(id), getTranslations('dashboard')])
+  console.log(`[perf] GameDetailPage (overview) total data fetch: ${(performance.now() - t0).toFixed(1)}ms`)
 
   const weddingDate = new Intl.DateTimeFormat('he-IL', { dateStyle: 'long' }).format(
     new Date(game.weddingDate),
