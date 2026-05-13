@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { prisma } from '@repo/db'
 import type { User } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
@@ -8,16 +9,20 @@ export type ActionResult<T = void> = T extends void
   ? { success: true } | { success: false; error: string }
   : { success: true; data: T } | { success: false; error: string }
 
-export async function getAuthUser(): Promise<User> {
+// getSession() reads from the cookie — no Supabase network round trip.
+// The middleware calls getUser() on every request and writes a fresh session cookie,
+// so by the time we reach an RSC the cookie is already validated.
+// Wrapped in React cache() so multiple callers within one render pay the cost once.
+export const getAuthUser = cache(async (): Promise<User> => {
   const t0 = performance.now()
   const supabase = await createClient()
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  console.log(`[perf] getAuthUser: ${(performance.now() - t0).toFixed(1)}ms`)
-  if (!user) throw new Error('Unauthorized')
-  return user
-}
+    data: { session },
+  } = await supabase.auth.getSession()
+  console.log(`[perf] getAuthUser (getSession): ${(performance.now() - t0).toFixed(1)}ms`)
+  if (!session?.user) throw new Error('Unauthorized')
+  return session.user
+})
 
 /**
  * Verifies the current user owns the given game.

@@ -62,35 +62,12 @@ export async function getGame(id: string) {
         select: { id: true, displayName: true, score: true, finishedAt: true, createdAt: true },
         orderBy: { createdAt: 'desc' },
       },
-      questions: { select: { id: true, position: true }, orderBy: { position: 'asc' } },
       _count: { select: { questions: true, players: true } },
     },
   })
   console.log(`[perf] getGame findUnique: ${(performance.now() - tFindUnique).toFixed(1)}ms`)
 
   if (!game || game.userId !== user.id) notFound()
-
-  const tGroupBy = performance.now()
-  const [totals, corrects] = await Promise.all([
-    prisma.playerAnswer.groupBy({
-      by: ['questionId'],
-      where: { question: { gameId: id } },
-      _count: { _all: true },
-    }),
-    prisma.playerAnswer.groupBy({
-      by: ['questionId'],
-      where: { question: { gameId: id }, isCorrect: true },
-      _count: { _all: true },
-    }),
-  ])
-  console.log(`[perf] getGame groupBy (answer stats): ${(performance.now() - tGroupBy).toFixed(1)}ms`)
-
-  const questionStats = game.questions.map((q) => ({
-    questionId: q.id,
-    position: q.position,
-    total: totals.find((t) => t.questionId === q.id)?._count._all ?? 0,
-    correct: corrects.find((c) => c.questionId === q.id)?._count._all ?? 0,
-  }))
 
   console.log(`[perf] getGame total: ${(performance.now() - t0).toFixed(1)}ms`)
   return {
@@ -111,7 +88,23 @@ export async function getGame(id: string) {
       createdAt: p.createdAt.toISOString(),
     })),
     _count: game._count,
-    questionStats,
+  }
+}
+
+export async function getGameForSettings(id: string) {
+  const t0 = performance.now()
+  const user = await getAuthUser()
+  const game = await prisma.game.findUnique({
+    where: { id },
+    select: { id: true, userId: true, coupleNames: true, weddingDate: true, tagline: true },
+  })
+  console.log(`[perf] getGameForSettings: ${(performance.now() - t0).toFixed(1)}ms`)
+  if (!game || game.userId !== user.id) notFound()
+  return {
+    id: game.id,
+    coupleNames: game.coupleNames,
+    weddingDate: game.weddingDate.toISOString().split('T')[0]!,
+    tagline: game.tagline,
   }
 }
 
