@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { getPublicGame } from '@/app/actions/players'
 import JoinGameForm from './_components/JoinGameForm'
@@ -10,7 +11,9 @@ export default async function PlayerWelcomePage({ params }: Props) {
 
   const game = await getPublicGame(slug)
 
-  if (!game || !game.isLive) {
+  if (!game) notFound()
+
+  if (!game.isLive) {
     return (
       <main
         dir="rtl"
