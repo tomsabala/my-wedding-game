@@ -3,13 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { calculateQuestionScore } from '@repo/shared'
+import { calculateQuestionScore, shuffleArray } from '@repo/shared'
 import type { PassingCardType } from '@repo/shared'
 import { Button } from '@/components/ui/button'
 import AnswerTile from '@/components/game/AnswerTile'
-import TimerBar from '@/components/game/TimerBar'
 
-const QUESTION_DURATION_MS = 30_000
 const FEEDBACK_DELAY_MS = 700
 
 type PreviewQuestion = {
@@ -45,6 +43,9 @@ export default function PreviewPlayer({ game }: { game: PreviewGame }) {
   const t = useTranslations('dashboard.preview')
   const tGame = useTranslations('game')
 
+  const questionsRef = useRef<PreviewQuestion[]>(shuffleArray(game.questions))
+  const questions = questionsRef.current
+
   const [screen, setScreen] = useState<Screen>({ type: 'question', index: 0 })
   const [totalScore, setTotalScore] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
@@ -66,7 +67,7 @@ export default function PreviewPlayer({ game }: { game: PreviewGame }) {
       currentIndex: number,
     ) => {
       const nextIndex = currentIndex + 1
-      const isLastQuestion = nextIndex >= game.questions.length
+      const isLastQuestion = nextIndex >= questions.length
 
       const unshown = (c: PreviewCard) => !currentShownIds.includes(c.id)
       const pendingCard =
@@ -94,18 +95,18 @@ export default function PreviewPlayer({ game }: { game: PreviewGame }) {
       setCorrectCount(newCorrectCount)
       setScreen({ type: 'question', index: nextIndex })
     },
-    [game.passingCards, game.questions.length],
+    [game.passingCards, questions],
   )
 
   const continueFromInterstitial = useCallback(
     (nextIndex: number) => {
-      if (nextIndex >= game.questions.length) {
+      if (nextIndex >= questions.length) {
         setScreen({ type: 'done', totalScore, correctCount })
       } else {
         setScreen({ type: 'question', index: nextIndex })
       }
     },
-    [game.questions.length, totalScore, correctCount],
+    [questions.length, totalScore, correctCount],
   )
 
   const banner = (
@@ -123,7 +124,7 @@ export default function PreviewPlayer({ game }: { game: PreviewGame }) {
     </div>
   )
 
-  if (game.questions.length === 0) {
+  if (questions.length === 0) {
     return (
       <main dir="rtl" className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
         {banner}
@@ -167,7 +168,7 @@ export default function PreviewPlayer({ game }: { game: PreviewGame }) {
             gameId={game.id}
             totalScore={screen.totalScore}
             correctCount={screen.correctCount}
-            totalQuestions={game.questions.length}
+            totalQuestions={questions.length}
             onRestart={restart}
           />
         </main>
@@ -175,7 +176,7 @@ export default function PreviewPlayer({ game }: { game: PreviewGame }) {
     )
   }
 
-  const currentQuestion = game.questions[screen.index]!
+  const currentQuestion = questions[screen.index]!
   const currentIndex = screen.index
 
   return (
@@ -195,7 +196,7 @@ export default function PreviewPlayer({ game }: { game: PreviewGame }) {
           key={currentQuestion.id}
           question={currentQuestion}
           questionNumber={currentIndex + 1}
-          totalQuestions={game.questions.length}
+          totalQuestions={questions.length}
           onComplete={(scoreGained, isCorrect) =>
             advanceFromQuestion(
               totalScore + scoreGained,
@@ -253,18 +254,11 @@ function QuestionScreen({
     [locked, question.correctIndex, onComplete],
   )
 
-  const handleTimeout = useCallback(() => {
-    if (locked) return
-    handleLock(selectedIndex ?? -1)
-  }, [locked, selectedIndex, handleLock])
-
   return (
     <div className="flex-1 px-5 py-6 max-w-2xl w-full mx-auto flex flex-col gap-5">
       <div className="text-xs text-wedding-on-surface-variant">
         <span>{t('question', { current: questionNumber, total: totalQuestions })}</span>
       </div>
-
-      <TimerBar durationMs={QUESTION_DURATION_MS} paused={locked} onTimeout={handleTimeout} />
 
       <div className="rounded-2xl bg-wedding-surface border border-wedding-outline-variant p-6">
         <h1 className="font-serif text-xl sm:text-2xl font-semibold text-wedding-on-surface leading-snug">

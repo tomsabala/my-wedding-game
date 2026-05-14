@@ -33,7 +33,7 @@ export default function AnswerTile({
       type="button"
       onClick={onClick}
       disabled={locked}
-      className={`flex items-start gap-3 rounded-2xl border-2 p-4 text-right transition-all min-h-[64px] ${stateClass} ${
+      className={`flex items-center gap-3 rounded-2xl border-2 p-4 text-right transition-all min-h-[64px] ${stateClass} ${
         !locked ? 'hover:border-wedding-tertiary hover:shadow-sm cursor-pointer' : ''
       } ${locked ? 'cursor-default' : ''}`}
     >
