@@ -349,7 +349,7 @@ function SortableCard({
             onClick={onDesign}
             title={t('design')}
           >
-            <CardLayoutRenderer layout={card.layout} className="w-full h-full" />
+            <CardLayoutRenderer layout={card.layout} className="relative w-full h-full" />
           </div>
         ) : (
           <p className="mt-2 text-sm text-wedding-on-surface line-clamp-3">{card.content}</p>
