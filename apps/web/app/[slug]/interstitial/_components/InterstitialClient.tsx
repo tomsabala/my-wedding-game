@@ -45,7 +45,7 @@ export default function InterstitialClient({ slug, card }: { slug: string; card:
           />
         ) : (
           <div className="mt-6 rounded-3xl bg-wedding-surface border border-wedding-outline-variant p-6 flex-1 flex flex-col gap-4">
-            {card.type !== 'DID_YOU_KNOW' ? (
+            {card.type !== 'DID_YOU_KNOW' && (
               <div className="aspect-video bg-wedding-surface-container rounded-2xl flex items-center justify-center">
                 <span
                   className="material-symbols-rounded text-wedding-outline"
