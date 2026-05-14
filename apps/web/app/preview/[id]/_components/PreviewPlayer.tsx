@@ -43,8 +43,7 @@ export default function PreviewPlayer({ game }: { game: PreviewGame }) {
   const t = useTranslations('dashboard.preview')
   const tGame = useTranslations('game')
 
-  const questionsRef = useRef<PreviewQuestion[]>(shuffleArray(game.questions))
-  const questions = questionsRef.current
+  const questions = game.questions
 
   const [screen, setScreen] = useState<Screen>({ type: 'question', index: 0 })
   const [totalScore, setTotalScore] = useState(0)
@@ -240,18 +239,26 @@ function QuestionScreen({
     [t],
   )
 
+  const { shuffledOptions, shuffledCorrectIndex } = useMemo(() => {
+    const order = shuffleArray(question.options.map((_, i) => i))
+    return {
+      shuffledOptions: order.map((i) => question.options[i]!),
+      shuffledCorrectIndex: order.indexOf(question.correctIndex),
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- component is keyed per question
+
   const handleLock = useCallback(
     (idx: number) => {
       if (locked) return
       setLocked(true)
       setSelectedIndex(idx)
       const timeTakenMs = startedAtRef.current === 0 ? 0 : Date.now() - startedAtRef.current
-      const isCorrect = idx === question.correctIndex
+      const isCorrect = idx === shuffledCorrectIndex
       const scoreGained = calculateQuestionScore(isCorrect, timeTakenMs)
       setResult({ isCorrect })
       setTimeout(() => onComplete(scoreGained, isCorrect), FEEDBACK_DELAY_MS)
     },
-    [locked, question.correctIndex, onComplete],
+    [locked, shuffledCorrectIndex, onComplete],
   )
 
   return (
@@ -267,14 +274,14 @@ function QuestionScreen({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {question.options.map((option, i) => (
+        {shuffledOptions.map((option, i) => (
           <AnswerTile
             key={i}
             label={optionLabels[i] ?? ''}
             text={option}
             selected={selectedIndex === i}
             locked={locked}
-            isCorrect={locked && i === question.correctIndex}
+            isCorrect={locked && i === shuffledCorrectIndex}
             isWrong={locked && !!result && !result.isCorrect && selectedIndex === i}
             onClick={() => !locked && setSelectedIndex(i)}
           />
