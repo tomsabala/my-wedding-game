@@ -83,11 +83,14 @@
       "button": "פרסם משחק",
       "undeploy": "הורד מהאוויר",
       "notEnoughQuestions": "דרושות לפחות 3 שאלות לפרסום",
-      "slugError": "שגיאה ביצירת קישור ייחודי, נסה שוב",
       "copyLink": "העתק קישור",
       "linkCopied": "הועתק!",
       "downloadQr": "הורד QR",
-      "preview": "תצוגה מקדימה"
+      "preview": "תצוגה מקדימה",
+      "reset": "אפס נתוני משחק",
+      "resetConfirm": "כל השחקנים והניקוד יימחקו. להמשיך?",
+      "resetConfirmButton": "כן, אפס",
+      "resetCancel": "ביטול"
     },
     "stats": {
       "totalPlayers": "שחקנים סה\"כ",

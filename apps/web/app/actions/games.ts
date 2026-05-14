@@ -155,22 +155,14 @@ export async function deployGame(id: string): Promise<ActionResult> {
     return { success: false, error: 'דרושות לפחות 3 שאלות לפרסום' }
   }
 
-  for (let i = 0; i < 10; i++) {
-    try {
-      await prisma.game.update({
-        where: { id, userId: user.id },
-        data: { slug: generateSlug(), status: 'LIVE' },
-      })
-      revalidatePath('/dashboard')
-      revalidatePath(`/dashboard/games/${id}`)
-      return { success: true }
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') continue
-      throw e
-    }
-  }
+  await prisma.game.update({
+    where: { id, userId: user.id },
+    data: { status: 'LIVE' },
+  })
 
-  return { success: false, error: 'שגיאה ביצירת קישור ייחודי, נסה שוב' }
+  revalidatePath('/dashboard')
+  revalidatePath(`/dashboard/games/${id}`)
+  return { success: true }
 }
 
 export async function undeployGame(id: string): Promise<ActionResult> {
@@ -183,6 +175,23 @@ export async function undeployGame(id: string): Promise<ActionResult> {
     where: { id, userId: user.id },
     data: { status: 'DRAFT' },
   })
+
+  revalidatePath('/dashboard')
+  revalidatePath(`/dashboard/games/${id}`)
+  return { success: true }
+}
+
+export async function resetGame(id: string): Promise<ActionResult> {
+  const user = await getAuthUser()
+
+  const game = await prisma.game.findUnique({ where: { id } })
+  if (!game || game.userId !== user.id) notFound()
+
+  if (game.status === 'LIVE') {
+    return { success: false, error: 'לא ניתן לאפס משחק פעיל' }
+  }
+
+  await prisma.player.deleteMany({ where: { gameId: id } })
 
   revalidatePath('/dashboard')
   revalidatePath(`/dashboard/games/${id}`)
