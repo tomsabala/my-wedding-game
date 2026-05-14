@@ -24,6 +24,7 @@ export default function DeploySection({ game }: Props) {
 
   function handleDeploy() {
     setError(null)
+    setConfirmReset(false)
     startTransition(async () => {
       const result = await deployGame(game.id)
       if (!result.success) setError(result.error)
@@ -32,6 +33,7 @@ export default function DeploySection({ game }: Props) {
 
   function handleUndeploy() {
     setError(null)
+    setConfirmReset(false)
     startTransition(async () => {
       const result = await undeployGame(game.id)
       if (!result.success) setError(result.error)
@@ -98,7 +100,7 @@ export default function DeploySection({ game }: Props) {
                 onClick={handleReset}
                 disabled={isPending}
               >
-                {isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+                {isPending && <Loader2 className="size-4 animate-spin" />}
                 {t('resetConfirmButton')}
               </Button>
             </div>
