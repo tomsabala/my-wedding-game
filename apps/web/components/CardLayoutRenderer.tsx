@@ -19,7 +19,7 @@ export default function CardLayoutRenderer({ layout, className = '', style }: Pr
 
   return (
     <div
-      className={`overflow-hidden ${className}`}
+      className={className}
       style={{ ...bgStyle, ...style }}
     >
       {/* Background image layer */}

@@ -40,7 +40,7 @@ export default function InterstitialClient({ slug, card }: { slug: string; card:
         {card.layout ? (
           <CardLayoutRenderer
             layout={card.layout}
-            className="relative mt-6 rounded-3xl flex-1"
+            className="relative overflow-hidden mt-6 rounded-3xl flex-1"
             style={{ aspectRatio: '9/16', maxHeight: '65vh' }}
           />
         ) : (

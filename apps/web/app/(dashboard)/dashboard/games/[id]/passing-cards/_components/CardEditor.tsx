@@ -266,7 +266,10 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
             onClick={() => setSelectedId(null)}
           >
             {/* Rendered layout */}
-            <CardLayoutRenderer layout={layout} className="absolute inset-0" />
+            <CardLayoutRenderer
+              layout={layout}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}
+            />
 
             {/* Interactive element overlays */}
             {layout.elements.map((el) => (
