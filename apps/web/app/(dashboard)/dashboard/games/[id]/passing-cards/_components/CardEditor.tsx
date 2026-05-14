@@ -258,34 +258,39 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
         >
           <div
             ref={canvasRef}
-            className="relative bg-wedding-surface-container rounded-2xl shadow-lg overflow-hidden select-none"
+            className="bg-wedding-surface-container rounded-2xl shadow-lg overflow-hidden select-none"
             style={{
               width: 'min(350px, calc((100dvh - 180px) * 9 / 16), calc(100vw - 300px - 32px))',
               aspectRatio: '9/16',
+              display: 'grid',
+              gridTemplateRows: '1fr',
+              gridTemplateColumns: '1fr',
             }}
             onClick={() => setSelectedId(null)}
           >
-            {/* Rendered layout */}
+            {/* Rendered layout — occupies the single grid cell */}
             <CardLayoutRenderer
               layout={layout}
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}
+              style={{ gridArea: '1 / 1', position: 'relative', overflow: 'hidden' }}
             />
 
-            {/* Interactive element overlays */}
-            {layout.elements.map((el) => (
-              <ElementHandle
-                key={el.id}
-                el={el}
-                selected={el.id === selectedId}
-                onClick={(e) => { e.stopPropagation(); setSelectedId(el.id) }}
-                onStartMove={(e) => startInteract(e, el.id, 'move')}
-                onStartResizeSE={(e) => startInteract(e, el.id, 'resize-se')}
-                onStartResizeSW={(e) => startInteract(e, el.id, 'resize-sw')}
-                onStartResizeNE={(e) => startInteract(e, el.id, 'resize-ne')}
-                onStartResizeNW={(e) => startInteract(e, el.id, 'resize-nw')}
-                onStartRotate={(e) => startInteract(e, el.id, 'rotate')}
-              />
-            ))}
+            {/* Interactive element overlays — stacked in same grid cell */}
+            <div style={{ gridArea: '1 / 1', position: 'relative' }}>
+              {layout.elements.map((el) => (
+                <ElementHandle
+                  key={el.id}
+                  el={el}
+                  selected={el.id === selectedId}
+                  onClick={(e) => { e.stopPropagation(); setSelectedId(el.id) }}
+                  onStartMove={(e) => startInteract(e, el.id, 'move')}
+                  onStartResizeSE={(e) => startInteract(e, el.id, 'resize-se')}
+                  onStartResizeSW={(e) => startInteract(e, el.id, 'resize-sw')}
+                  onStartResizeNE={(e) => startInteract(e, el.id, 'resize-ne')}
+                  onStartResizeNW={(e) => startInteract(e, el.id, 'resize-nw')}
+                  onStartRotate={(e) => startInteract(e, el.id, 'rotate')}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
