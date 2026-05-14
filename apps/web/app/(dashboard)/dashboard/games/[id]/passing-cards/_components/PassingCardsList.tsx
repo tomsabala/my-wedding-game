@@ -116,10 +116,11 @@ export default function PassingCardsList({ gameId, initialCards, questionCount }
         setError(result.error)
         return
       }
+      const newId = result.data.id
       setCards((prev) => [
         ...prev,
         {
-          id: result.data.id,
+          id: newId,
           type: form.type,
           content: form.content,
           layout: null,
@@ -127,6 +128,7 @@ export default function PassingCardsList({ gameId, initialCards, questionCount }
         },
       ])
       setAdding(false)
+      setDesigningId(newId)
     })
   }
 
@@ -151,6 +153,7 @@ export default function PassingCardsList({ gameId, initialCards, questionCount }
         ),
       )
       setEditingId(null)
+      setDesigningId(id)
     })
   }
 
