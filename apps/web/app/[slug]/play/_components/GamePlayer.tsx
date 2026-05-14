@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
 import { submitAnswer, finishGame, type PlayGame } from '@/app/actions/players'
+import { shuffleArray } from '@repo/shared'
 import {
   clearProgress,
   readPlayer,
@@ -19,15 +20,6 @@ import AnswerTile from '@/components/game/AnswerTile'
 import GameNav from './GameNav'
 
 const FEEDBACK_DELAY_MS = 700
-
-function shuffleArray<T>(arr: T[]): T[] {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
 
 type Bootstrap = {
   player: StoredPlayer
@@ -92,8 +84,7 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
   const [shownCardIds, setShownCardIds] = useState<string[]>(bootstrap.initialShown)
   const [finishing, setFinishing] = useState(false)
 
-  const questionsRef = useRef<PlayGame['questions']>(shuffleArray(game.questions))
-  const questions = questionsRef.current
+  const [questions] = useState(() => shuffleArray(game.questions))
 
   const totalQuestions = questions.length
   const currentQuestion = questions[currentIndex]

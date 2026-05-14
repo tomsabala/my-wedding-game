@@ -6,9 +6,6 @@ interface Props {
   style?: React.CSSProperties
 }
 
-// Reference card dimensions at design time (used to scale font sizes)
-const REF_WIDTH = 390
-
 export default function CardLayoutRenderer({ layout, className = '', style }: Props) {
   const { background, elements } = layout
 

@@ -13,6 +13,7 @@ import type {
 } from '@repo/shared'
 
 import { Button } from '@/components/ui/button'
+import { clamp } from '@/lib/utils'
 import CardLayoutRenderer from '@/components/CardLayoutRenderer'
 import { getMediaItems } from '@/app/actions/media'
 import { updatePassingCardLayout } from '@/app/actions/passingCards'
@@ -36,7 +37,7 @@ interface Props {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function makeId() {
-  return Math.random().toString(36).slice(2, 10)
+  return crypto.randomUUID()
 }
 
 function defaultLayout(): CardLayout {
@@ -61,10 +62,6 @@ function defaultImage(url: string): CardImageElement {
   }
 }
 
-function clamp(v: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, v))
-}
-
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function CardEditor({ cardId, gameId, initialLayout, onClose, onSaved }: Props) {
@@ -77,6 +74,8 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
+  const layoutRef = useRef(layout)
+  layoutRef.current = layout
 
   const selectedEl = layout.elements.find((e) => e.id === selectedId) ?? null
 
@@ -123,7 +122,6 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
 
   // ── Drag / Resize / Rotate on canvas ─────────────────────────────────────
 
-  // Stores { startPx: {x,y}, startEl: {x,y}, kind: 'move'|'resize-se'|'rotate' }
   const interactRef = useRef<{
     kind: 'move' | 'resize-se' | 'resize-sw' | 'resize-ne' | 'resize-nw' | 'rotate'
     startPx: { x: number; y: number }
@@ -141,7 +139,7 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
     ) => {
       e.stopPropagation()
       e.currentTarget.setPointerCapture(e.pointerId)
-      const el = layout.elements.find((x) => x.id === id)
+      const el = layoutRef.current.elements.find((x) => x.id === id)
       if (!el) return
       interactRef.current = {
         kind,
@@ -150,7 +148,7 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
         id,
       }
     },
-    [layout.elements],
+    [],
   )
 
   const onPointerMove = useCallback(
@@ -203,17 +201,15 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
           ...(h !== undefined ? { height: clamp(h - dy, 5, 100) } : {}),
         })
       } else if (kind === 'rotate') {
-        // Compute angle from element center to current pointer
-        const el = layout.elements.find((x) => x.id === id)
-        if (!el) return
-        const elCenterX = rect.left + ((el.x + el.width / 2) / 100) * rect.width
+        const el = ctx.startEl as CardElement
+        const elCenterX = rect.left + ((el.x + (el as CardTextElement).width / 2) / 100) * rect.width
         const elH = el.type === 'image' ? (el as CardImageElement).height : 20
         const elCenterY = rect.top + ((el.y + elH / 2) / 100) * rect.height
         const angle = Math.atan2(e.clientY - elCenterY, e.clientX - elCenterX) * (180 / Math.PI) + 90
         updateEl(id, { rotation: Math.round(angle) })
       }
     },
-    [canvasRect, layout.elements, updateEl],
+    [canvasRect, updateEl],
   )
 
   const onPointerUp = useCallback(() => {
@@ -383,7 +379,7 @@ function ElementHandle({
         transform: el.rotation ? `rotate(${el.rotation}deg)` : undefined,
         transformOrigin: 'center center',
         cursor: 'move',
-        outline: selected ? '2px solid #7b5455' : 'none',
+        outline: selected ? '2px solid var(--wedding-primary)' : 'none',
         boxSizing: 'border-box',
       }}
       onClick={onClick}
@@ -401,7 +397,7 @@ function ElementHandle({
               width: '16px',
               height: '16px',
               borderRadius: '50%',
-              background: '#7b5455',
+              background: 'var(--wedding-primary)',
               cursor: 'grab',
               zIndex: 10,
             }}
@@ -433,7 +429,7 @@ function ResizeHandle({
     width: '10px',
     height: '10px',
     background: '#fff',
-    border: '2px solid #7b5455',
+    border: '2px solid var(--wedding-primary)',
     borderRadius: '2px',
     zIndex: 10,
     ...(corner === 'nw' ? { top: '-5px', left: '-5px', cursor: 'nw-resize' }
@@ -466,7 +462,7 @@ function BackgroundPanel({
               type="button"
               onClick={() => onChange({ type: 'color', color: c })}
               className="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110"
-              style={{ backgroundColor: c, borderColor: background.color === c && background.type === 'color' ? '#7b5455' : '#d4c2c2' }}
+              style={{ backgroundColor: c, borderColor: background.color === c && background.type === 'color' ? 'var(--wedding-primary)' : 'var(--wedding-outline-variant)' }}
             />
           ))}
           <label className="w-8 h-8 rounded-full border-2 border-wedding-outline-variant overflow-hidden cursor-pointer hover:scale-110 transition-transform flex items-center justify-center bg-gradient-to-br from-red-400 via-yellow-300 to-blue-400">
@@ -489,7 +485,7 @@ function BackgroundPanel({
                 type="button"
                 onClick={() => onChange({ type: 'image', imageUrl: item.url, imageZoom: 1, imageX: 0.5, imageY: 0.5 })}
                 className="aspect-square rounded-lg overflow-hidden border-2 hover:border-wedding-primary transition-colors"
-                style={{ borderColor: background.imageUrl === item.url ? '#7b5455' : 'transparent' }}
+                style={{ borderColor: background.imageUrl === item.url ? 'var(--wedding-primary)' : 'transparent' }}
               >
                 <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
               </button>
