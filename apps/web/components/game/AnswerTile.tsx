@@ -40,7 +40,7 @@ export default function AnswerTile({
       <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-wedding-secondary-container text-sm font-bold text-wedding-secondary">
         {label}
       </span>
-      <span className="text-sm sm:text-base text-wedding-on-surface text-start flex-1">{text}</span>
+      <span className="text-sm sm:text-base text-wedding-on-surface text-center flex-1">{text}</span>
     </button>
   )
 }

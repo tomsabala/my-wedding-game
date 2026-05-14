@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db'
-import type { PassingCardType } from '@repo/shared'
+import type { PassingCardType, CardLayout } from '@repo/shared'
 
 import { getPassingCards } from '@/app/actions/passingCards'
 import { PerfMount } from '@/components/perf-mount'
@@ -29,6 +29,7 @@ export default async function PassingCardsPage({ params }: Props) {
           id: c.id,
           type: c.type as PassingCardType,
           content: c.content,
+          layout: (c.layout ?? null) as CardLayout | null,
           afterQuestionPosition: c.afterQuestionPosition,
         }))}
         questionCount={questionCount}

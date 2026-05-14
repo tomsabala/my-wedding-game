@@ -21,10 +21,12 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
-import type { PassingCardType } from '@repo/shared'
+import type { PassingCardType, CardLayout } from '@repo/shared'
 
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import CardLayoutRenderer from '@/components/CardLayoutRenderer'
+import CardEditor from './CardEditor'
 import {
   createPassingCard,
   updatePassingCard,
@@ -42,6 +44,7 @@ type Card = {
   id: string
   type: PassingCardType
   content: string
+  layout?: CardLayout | null
   afterQuestionPosition: number | null
 }
 
@@ -62,10 +65,13 @@ export default function PassingCardsList({ gameId, initialCards, questionCount }
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [designingId, setDesigningId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [orderSaved, setOrderSaved] = useState(false)
   const [orderDirty, setOrderDirty] = useState(false)
   const [isPending, startTransition] = useTransition()
+
+  const designingCard = designingId ? cards.find((c) => c.id === designingId) ?? null : null
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -110,16 +116,19 @@ export default function PassingCardsList({ gameId, initialCards, questionCount }
         setError(result.error)
         return
       }
+      const newId = result.data.id
       setCards((prev) => [
         ...prev,
         {
-          id: result.data.id,
+          id: newId,
           type: form.type,
           content: form.content,
+          layout: null,
           afterQuestionPosition: form.afterQuestionPosition,
         },
       ])
       setAdding(false)
+      setDesigningId(newId)
     })
   }
 
@@ -144,6 +153,7 @@ export default function PassingCardsList({ gameId, initialCards, questionCount }
         ),
       )
       setEditingId(null)
+      setDesigningId(id)
     })
   }
 
@@ -161,7 +171,22 @@ export default function PassingCardsList({ gameId, initialCards, questionCount }
     })
   }
 
+  function handleLayoutSaved(cardId: string, layout: CardLayout) {
+    setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, layout } : c)))
+    setDesigningId(null)
+  }
+
   return (
+    <>
+    {designingCard && (
+      <CardEditor
+        cardId={designingCard.id}
+        gameId={gameId}
+        initialLayout={designingCard.layout ?? null}
+        onClose={() => setDesigningId(null)}
+        onSaved={(layout) => handleLayoutSaved(designingCard.id, layout)}
+      />
+    )}
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -237,6 +262,7 @@ export default function PassingCardsList({ gameId, initialCards, questionCount }
                     card={card}
                     onEdit={() => setEditingId(card.id)}
                     onDelete={() => handleDelete(card.id)}
+                    onDesign={() => setDesigningId(card.id)}
                   />
                 ),
               )}
@@ -245,6 +271,7 @@ export default function PassingCardsList({ gameId, initialCards, questionCount }
         </DndContext>
       )}
     </div>
+    </>
   )
 }
 
@@ -254,10 +281,12 @@ function SortableCard({
   card,
   onEdit,
   onDelete,
+  onDesign,
 }: {
   card: Card
   onEdit: () => void
   onDelete: () => void
+  onDesign: () => void
 }) {
   const t = useTranslations('passingCards')
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -313,10 +342,26 @@ function SortableCard({
             <span className="text-xs text-wedding-on-surface-variant">{t('atEnd')}</span>
           )}
         </div>
-        <p className="mt-2 text-sm text-wedding-on-surface line-clamp-3">{card.content}</p>
+        {card.layout ? (
+          <div
+            className="mt-2 w-16 rounded-lg overflow-hidden border border-wedding-outline-variant cursor-pointer hover:opacity-80 transition-opacity"
+            style={{ aspectRatio: '9/16' }}
+            onClick={onDesign}
+            title={t('design')}
+          >
+            <CardLayoutRenderer layout={card.layout} className="relative overflow-hidden w-full h-full" />
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-wedding-on-surface line-clamp-3">{card.content}</p>
+        )}
       </div>
 
       <div className="flex gap-1 shrink-0">
+        <Button variant="outline" size="icon-sm" onClick={onDesign} aria-label={t('design')}>
+          <span className="material-symbols-rounded" style={{ fontSize: '16px', lineHeight: 1 }}>
+            auto_awesome
+          </span>
+        </Button>
         <Button variant="outline" size="icon-sm" onClick={onEdit} aria-label={t('edit')}>
           <span className="material-symbols-rounded" style={{ fontSize: '16px', lineHeight: 1 }}>
             edit

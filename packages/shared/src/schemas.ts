@@ -23,6 +23,7 @@ export const questionSchema = z
 export const passingCardSchema = z.object({
   type: z.enum(['DID_YOU_KNOW', 'PHOTO', 'VIDEO']),
   content: z.string().min(1),
+  layout: z.unknown().optional(),
   afterQuestionPosition: z.number().int().min(0).nullable().optional(),
 })
 

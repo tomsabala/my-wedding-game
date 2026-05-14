@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
 import { submitAnswer, finishGame, type PlayGame } from '@/app/actions/players'
+import { shuffleArray } from '@repo/shared'
 import {
   clearProgress,
   readPlayer,
@@ -16,10 +17,8 @@ import {
   type StoredProgress,
 } from '@/lib/player-storage'
 import AnswerTile from '@/components/game/AnswerTile'
-import TimerBar from '@/components/game/TimerBar'
 import GameNav from './GameNav'
 
-const QUESTION_DURATION_MS = 30_000
 const FEEDBACK_DELAY_MS = 700
 
 type Bootstrap = {
@@ -85,8 +84,10 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
   const [shownCardIds, setShownCardIds] = useState<string[]>(bootstrap.initialShown)
   const [finishing, setFinishing] = useState(false)
 
-  const totalQuestions = game.questions.length
-  const currentQuestion = game.questions[currentIndex]
+  const [questions] = useState(() => shuffleArray(game.questions))
+
+  const totalQuestions = questions.length
+  const currentQuestion = questions[currentIndex]
 
   const finalize = useCallback(
     async (finalScore: number) => {
@@ -107,9 +108,7 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
       // the last question, fall back to an end-of-game card.
       const unshown = (c: { id: string }) => !currentShown.includes(c.id)
       const pendingCard =
-        game.passingCards.find(
-          (c) => unshown(c) && c.afterQuestionPosition === justAnsweredPosition,
-        ) ??
+        game.passingCards.find((c) => unshown(c) && c.afterQuestionPosition === justAnsweredPosition) ??
         (isLastQuestion
           ? game.passingCards.find((c) => unshown(c) && c.afterQuestionPosition === null)
           : undefined)
@@ -238,18 +237,11 @@ function QuestionRound({
     [locked, playerId, question.id, onComplete],
   )
 
-  const handleTimeout = useCallback(() => {
-    if (locked) return
-    void handleLock(selectedIndex ?? -1)
-  }, [locked, selectedIndex, handleLock])
-
   return (
     <div className="flex-1 px-5 py-6 max-w-2xl w-full mx-auto flex flex-col gap-5">
       <div className="flex items-center justify-between text-xs text-wedding-on-surface-variant">
         <span>{t('question', { current: questionNumber, total: totalQuestions })}</span>
       </div>
-
-      <TimerBar durationMs={QUESTION_DURATION_MS} paused={locked} onTimeout={handleTimeout} />
 
       <div className="rounded-2xl bg-wedding-surface border border-wedding-outline-variant p-6">
         <h1 className="font-serif text-xl sm:text-2xl font-semibold text-wedding-on-surface leading-snug">
