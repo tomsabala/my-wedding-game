@@ -12,6 +12,7 @@ import {
   updateQuestion,
   deleteQuestion,
 } from '@/app/actions/questions'
+import { PerfMount } from '@/components/perf-mount'
 
 type Question = {
   id: string
@@ -110,6 +111,7 @@ export default function QuestionsList({ gameId, initialQuestions }: Props) {
 
   return (
     <div className="space-y-5">
+      <PerfMount label="dashboard/questions" />
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>

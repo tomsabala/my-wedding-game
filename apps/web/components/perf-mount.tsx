@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 declare global {
   interface Window {
     __tabClickTime?: number
+    __nextQuestionClickTime?: number
   }
 }
 

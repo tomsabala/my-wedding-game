@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
 import { uploadMediaItem, deleteMediaItem, type MediaItem } from '@/app/actions/media'
+import { PerfMount } from '@/components/perf-mount'
 
 type Props = {
   gameId: string
@@ -72,6 +73,7 @@ export default function MediaGrid({ gameId, initialItems, totalBytes, quotaBytes
 
   return (
     <div className="space-y-5">
+      <PerfMount label="dashboard/media" />
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="font-serif text-xl font-semibold text-wedding-on-surface">

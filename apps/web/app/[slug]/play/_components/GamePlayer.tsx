@@ -212,6 +212,14 @@ function QuestionRound({
 
   useEffect(() => {
     startedAtRef.current = Date.now()
+    const clickTime = window.__nextQuestionClickTime
+    if (clickTime !== undefined) {
+      const elapsed = (performance.now() - clickTime).toFixed(1)
+      console.log(`[perf-game] Q${questionNumber} mounted — ${elapsed}ms after next-question click`)
+      window.__nextQuestionClickTime = undefined
+    } else {
+      console.log(`[perf-game] Q${questionNumber} mounted — first load`)
+    }
   }, [])
 
   const optionLabels = useMemo(
@@ -275,7 +283,13 @@ function QuestionRound({
       </div>
 
       {result ? (
-        <Button onClick={() => onComplete(result.scoreGained)} className="self-end">
+        <Button
+          onClick={() => {
+            window.__nextQuestionClickTime = performance.now()
+            onComplete(result.scoreGained)
+          }}
+          className="self-end"
+        >
           {t('nextQuestion')}
         </Button>
       ) : (

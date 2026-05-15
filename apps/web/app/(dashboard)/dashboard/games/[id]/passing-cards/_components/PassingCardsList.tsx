@@ -33,6 +33,7 @@ import {
   deletePassingCard,
   savePassingCardsSequence,
 } from '@/app/actions/passingCards'
+import { PerfMount } from '@/components/perf-mount'
 
 const CARD_TYPE_ICONS: Record<PassingCardType, string> = {
   DID_YOU_KNOW: 'lightbulb',
@@ -178,6 +179,7 @@ export default function PassingCardsList({ gameId, initialCards, questionCount }
 
   return (
     <>
+    <PerfMount label="dashboard/cards" />
     {designingCard && (
       <CardEditor
         cardId={designingCard.id}

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { updateGame, deleteGame } from '@/app/actions/games'
+import { PerfMount } from '@/components/perf-mount'
 
 type Props = {
   game: {
@@ -71,6 +72,7 @@ export default function SettingsForm({ game }: Props) {
 
   return (
     <div className="space-y-5">
+      <PerfMount label="dashboard/settings" />
       <form
         onSubmit={handleSubmit(onSubmit)}
         noValidate
