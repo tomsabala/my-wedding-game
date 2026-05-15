@@ -79,17 +79,17 @@ export async function getGame(id: string) {
     userId: game.userId,
     slug: game.slug,
     coupleNames: game.coupleNames,
-    weddingDate: game.weddingDate.toISOString().split('T')[0]!,
+    weddingDate: new Date(game.weddingDate).toISOString().split('T')[0]!,
     tagline: game.tagline,
     status: game.status,
-    createdAt: game.createdAt.toISOString(),
-    updatedAt: game.updatedAt.toISOString(),
+    createdAt: new Date(game.createdAt).toISOString(),
+    updatedAt: new Date(game.updatedAt).toISOString(),
     players: game.players.map((p) => ({
       id: p.id,
       displayName: p.displayName,
       score: p.score,
-      finishedAt: p.finishedAt?.toISOString() ?? null,
-      createdAt: p.createdAt.toISOString(),
+      finishedAt: p.finishedAt ? new Date(p.finishedAt).toISOString() : null,
+      createdAt: new Date(p.createdAt).toISOString(),
     })),
     _count: game._count,
   }
@@ -109,7 +109,7 @@ export async function getGameForSettings(id: string) {
   return {
     id: game.id,
     coupleNames: game.coupleNames,
-    weddingDate: game.weddingDate.toISOString().split('T')[0]!,
+    weddingDate: new Date(game.weddingDate).toISOString().split('T')[0]!,
     tagline: game.tagline,
   }
 }
