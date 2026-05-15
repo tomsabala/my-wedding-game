@@ -55,7 +55,7 @@ export default function JoinGameForm({ slug }: { slug: string }) {
         />
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <Button type="submit" disabled={isPending} className="w-full">
+      <Button type="submit" size="lg" disabled={isPending} className="w-full py-6 text-base font-semibold">
         {isPending ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (
