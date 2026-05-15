@@ -65,22 +65,24 @@ export async function joinGame(
     return { success: false, error: 'המשחק אינו פעיל' }
   }
 
-  const [existingPlayer, player] = await Promise.all([
-    prisma.player.findFirst({
-      where: { gameId: game.id, displayName: name },
-      select: { id: true },
-    }),
-    prisma.player.create({
-      data: { gameId: game.id, displayName: name },
-      select: { id: true, gameId: true },
-    }),
-  ])
+  const existingPlayer = await prisma.player.findFirst({
+    where: { gameId: game.id, displayName: name },
+    select: { id: true },
+  })
+
+  if (existingPlayer) {
+    return { success: false, error: 'nameTaken' }
+  }
+
+  const player = await prisma.player.create({
+    data: { gameId: game.id, displayName: name },
+    select: { id: true, gameId: true },
+  })
 
   revalidatePath(`/dashboard/games/${game.id}`)
   return {
     success: true,
     data: { playerId: player.id, gameId: player.gameId },
-    ...(existingPlayer ? { warning: 'nameTaken' } : {}),
   }
 }
 

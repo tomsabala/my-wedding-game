@@ -250,11 +250,9 @@
     "startPlaying": "התחל לשחק",
     "gameNotLive": "המשחק לא פעיל",
     "checkBackLater": "בקרו שוב מאוחר יותר.",
-    "nameTakenTitle": "שם זה כבר בשימוש",
-    "nameTakenBody": "מישהו אחר כבר משחק תחת שם זה. תוכלו להמשיך בכל זאת.",
-    "nameTakenDismiss": "המשך לשחק",
     "errors": {
-      "nameRequired": "יש להזין שם"
+      "nameRequired": "יש להזין שם",
+      "nameTaken": "שם זה כבר בשימוש, אנא בחרו שם אחר"
     }
   },
   "game": {
