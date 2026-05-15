@@ -141,11 +141,12 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
       const isLastQuestion = nextIndex >= totalQuestions
 
       const unshown = (c: { id: string }) => !currentShown.includes(c.id)
-      const pendingCard =
-        game.passingCards.find((c) => unshown(c) && c.afterQuestionPosition === justAnsweredPosition) ??
-        (isLastQuestion
-          ? game.passingCards.find((c) => unshown(c) && c.afterQuestionPosition === null)
-          : undefined)
+      // Passing cards gated out — flip (false as boolean) to true to re-enable
+      const pendingCard: PlayGame['passingCards'][number] | undefined =
+        (false as boolean)
+          ? (game.passingCards.find((c) => unshown(c) && c.afterQuestionPosition === justAnsweredPosition) ??
+             (isLastQuestion ? game.passingCards.find((c) => unshown(c) && c.afterQuestionPosition === null) : undefined))
+          : undefined
 
       const progressBase: Omit<StoredProgress, 'currentIndex' | 'shownCardIds'> = {
         slug: game.slug,
