@@ -34,6 +34,7 @@ model Game {
   passingCards PassingCard[]
   players      Player[]
 
+  @@index([userId])
   @@map("games")
 }
 
@@ -48,6 +49,8 @@ model Question {
   game         Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
   answers      PlayerAnswer[]
 
+  @@index([gameId])
+  @@index([gameId, position])
   @@map("questions")
 }
 
@@ -61,6 +64,7 @@ model PassingCard {
 
   game                  Game            @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
+  @@index([gameId])
   @@map("passing_cards")
 }
 
@@ -75,6 +79,8 @@ model Player {
   game        Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
   answers     PlayerAnswer[]
 
+  @@index([gameId])
+  @@index([gameId, score(sort: Desc)])
   @@map("players")
 }
 
@@ -89,5 +95,7 @@ model PlayerAnswer {
   player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
   question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
+  @@index([playerId])
+  @@index([questionId])
   @@map("player_answers")
 }

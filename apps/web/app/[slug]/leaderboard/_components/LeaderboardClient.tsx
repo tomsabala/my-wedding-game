@@ -40,8 +40,6 @@ export default function LeaderboardClient({ slug, gameId, coupleNames, initialPl
       if (next) setPlayers(next.players)
     }
 
-    void refresh()
-
     const channel = supabase
       .channel(`leaderboard:${gameId}`)
       .on(

@@ -8,23 +8,20 @@ import { revalidatePath } from 'next/cache'
 import { assertGameOwner, getAuthUser, type ActionResult } from '@/lib/actions'
 
 export async function getPassingCards(gameId: string) {
-  const t0 = performance.now()
-  await assertGameOwner(gameId) // ownership check — see assertGameOwner log above
-  const tQuery = performance.now()
-  const result = await prisma.passingCard.findMany({
-    where: { gameId },
+  const user = await getAuthUser()
+  const game = await prisma.game.findUnique({
+    where: { id: gameId },
     select: {
-      id: true,
-      gameId: true,
-      type: true,
-      content: true,
-      layout: true,
-      afterQuestionPosition: true,
+      userId: true,
+      _count: { select: { questions: true } },
+      passingCards: {
+        orderBy: [{ afterQuestionPosition: 'asc' }],
+        select: { id: true, gameId: true, type: true, content: true, layout: true, afterQuestionPosition: true },
+      },
     },
-    orderBy: [{ afterQuestionPosition: 'asc' }],
   })
-  console.log(`[perf-server] getPassingCards — main DB query: ${(performance.now() - tQuery).toFixed(1)}ms  total (incl assertGameOwner): ${(performance.now() - t0).toFixed(1)}ms`)
-  return result
+  if (!game || game.userId !== user.id) notFound()
+  return { passingCards: game.passingCards, questionCount: game._count.questions }
 }
 
 export async function createPassingCard(

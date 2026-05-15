@@ -7,6 +7,7 @@ type Props = {
   locked: boolean
   isCorrect: boolean
   isWrong: boolean
+  pending: boolean
   onClick: () => void
 }
 
@@ -17,6 +18,7 @@ export default function AnswerTile({
   locked,
   isCorrect,
   isWrong,
+  pending,
   onClick,
 }: Props) {
   let stateClass = 'border-wedding-outline-variant bg-wedding-surface'
@@ -24,6 +26,8 @@ export default function AnswerTile({
     stateClass = 'border-emerald-500 bg-emerald-50'
   } else if (isWrong) {
     stateClass = 'border-rose-400 bg-rose-50'
+  } else if (pending) {
+    stateClass = 'border-wedding-tertiary bg-[#fffdf0] animate-pulse'
   } else if (selected && !locked) {
     stateClass = 'border-wedding-tertiary bg-[#fffdf0]'
   }

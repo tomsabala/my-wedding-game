@@ -208,33 +208,34 @@ export async function getLeaderboard(
 ): Promise<{ gameId: string; coupleNames: string; players: LeaderboardEntry[] } | null> {
   const game = await prisma.game.findUnique({
     where: { slug },
-    select: {
-      id: true,
-      coupleNames: true,
-      status: true,
-      players: {
-        select: {
-          id: true,
-          displayName: true,
-          answers: { select: { isCorrect: true, timeTakenMs: true } },
-        },
-      },
-    },
+    select: { id: true, coupleNames: true, status: true },
   })
 
   if (!game || game.status !== 'LIVE') return null
 
-  const players: LeaderboardEntry[] = game.players
-    .map((p) => {
-      let correctCount = 0
-      let totalTimeTakenMs = 0
-      for (const a of p.answers) {
-        if (a.isCorrect) correctCount++
-        totalTimeTakenMs += a.timeTakenMs
-      }
-      return { id: p.id, displayName: p.displayName, correctCount, totalTimeTakenMs }
-    })
-    .sort((a, b) => b.correctCount - a.correctCount || a.totalTimeTakenMs - b.totalTimeTakenMs)
+  // Single GROUP BY query — one row per player instead of fetching all answer rows
+  const rows = await prisma.$queryRaw<
+    { id: string; display_name: string; correct_count: bigint; total_time_ms: bigint }[]
+  >`
+    SELECT p.id,
+           p.display_name,
+           COUNT(CASE WHEN pa.is_correct THEN 1 END) AS correct_count,
+           COALESCE(SUM(pa.time_taken_ms), 0)        AS total_time_ms
+    FROM   players p
+    LEFT JOIN player_answers pa ON pa.player_id = p.id
+    WHERE  p.game_id = ${game.id}
+    GROUP  BY p.id, p.display_name
+    ORDER  BY correct_count DESC, total_time_ms ASC
+  `
 
-  return { gameId: game.id, coupleNames: game.coupleNames, players }
+  return {
+    gameId: game.id,
+    coupleNames: game.coupleNames,
+    players: rows.map((r) => ({
+      id: r.id,
+      displayName: r.display_name,
+      correctCount: Number(r.correct_count),
+      totalTimeTakenMs: Number(r.total_time_ms),
+    })),
+  }
 }

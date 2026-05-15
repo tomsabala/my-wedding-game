@@ -17,15 +17,19 @@ type QuestionRow = {
 }
 
 export async function getQuestions(gameId: string): Promise<QuestionRow[]> {
-  const t0 = performance.now()
-  await assertGameOwner(gameId) // ownership check — see assertGameOwner log above
-  const tQuery = performance.now()
-  const rows = await prisma.question.findMany({
-    where: { gameId },
-    orderBy: { position: 'asc' },
+  const user = await getAuthUser()
+  const game = await prisma.game.findUnique({
+    where: { id: gameId },
+    select: {
+      userId: true,
+      questions: {
+        orderBy: { position: 'asc' },
+        select: { id: true, gameId: true, text: true, options: true, correctIndex: true, position: true },
+      },
+    },
   })
-  console.log(`[perf-server] getQuestions — main DB query: ${(performance.now() - tQuery).toFixed(1)}ms  total (incl assertGameOwner): ${(performance.now() - t0).toFixed(1)}ms`)
-  return rows.map((q) => ({
+  if (!game || game.userId !== user.id) notFound()
+  return game.questions.map((q) => ({
     id: q.id,
     gameId: q.gameId,
     text: q.text,
@@ -126,14 +130,15 @@ export async function reorderQuestions(
 ): Promise<ActionResult> {
   await assertGameOwner(gameId)
 
-  await prisma.$transaction(
-    orderedIds.map((id, index) =>
-      prisma.question.update({
-        where: { id },
-        data: { position: index },
-      }),
-    ),
-  )
+  await prisma.$executeRaw`
+    UPDATE questions AS q
+    SET    position = v.position
+    FROM   (
+      SELECT unnest(${orderedIds}::text[])                        AS id,
+             generate_series(0, ${orderedIds.length - 1}::int)   AS position
+    ) AS v
+    WHERE  q.id = v.id AND q.game_id = ${gameId}
+  `
 
   revalidatePath(`/dashboard/games/${gameId}/questions`)
   return { success: true }

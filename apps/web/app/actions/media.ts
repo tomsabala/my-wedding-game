@@ -1,8 +1,11 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { notFound } from 'next/navigation'
 
-import { assertGameOwner, type ActionResult } from '@/lib/actions'
+import { prisma } from '@repo/db'
+
+import { assertGameOwner, getAuthUser, type ActionResult } from '@/lib/actions'
 import { createClient } from '@/lib/supabase/server'
 
 const BUCKET = 'game-media'
@@ -21,7 +24,9 @@ export type MediaItem = {
 export async function getMediaItems(
   gameId: string,
 ): Promise<{ items: MediaItem[]; totalBytes: number; quotaBytes: number }> {
-  const { user } = await assertGameOwner(gameId)
+  const user = await getAuthUser()
+  const game = await prisma.game.findUnique({ where: { id: gameId }, select: { userId: true } })
+  if (!game || game.userId !== user.id) notFound()
   const supabase = await createClient()
   const prefix = `${user.id}/${gameId}`
 
