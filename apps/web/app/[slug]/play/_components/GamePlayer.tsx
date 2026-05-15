@@ -90,9 +90,9 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
   const currentQuestion = questions[currentIndex]
 
   const finalize = useCallback(
-    async (finalScore: number) => {
+    async () => {
       setFinishing(true)
-      await finishGame(bootstrap.player.playerId, finalScore)
+      await finishGame(bootstrap.player.playerId)
       clearProgress()
       router.replace(`/${game.slug}/leaderboard`)
     },
@@ -129,7 +129,7 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
       }
 
       if (isLastQuestion) {
-        void finalize(newTotalScore)
+        void finalize()
         return
       }
 
