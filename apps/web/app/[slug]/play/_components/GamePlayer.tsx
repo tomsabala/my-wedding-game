@@ -227,6 +227,9 @@ function QuestionRound({
     scoreGained: number
   } | null>(null)
   const startedAtRef = useRef<number>(0)
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => { if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current) }, [])
 
   const [shuffleOrder] = useState(() => shuffleArray(question.options.map((_, i) => i)))
   const shuffledOptions = shuffleOrder.map((i) => question.options[i]!)

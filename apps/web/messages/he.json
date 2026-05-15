@@ -210,6 +210,9 @@
       "noSelection": "לחצו על אלמנט בכרטיסייה לעריכתו",
       "text": "טקסט",
       "fontSize": "גודל פונט",
+      "fontFamily": "גופן",
+      "lineHeight": "גובה שורה",
+      "letterSpacing": "מרווח אותיות",
       "color": "צבע",
       "align": "יישור",
       "rotation": "סיבוב",
@@ -217,6 +220,13 @@
       "imageZoom": "זום תמונה",
       "panX": "מיקום אופקי",
       "panY": "מיקום אנכי",
+      "borderRadius": "פינות מעוגלות",
+      "position": "מיקום בכרטיסייה",
+      "centerH": "מרכז אופקי",
+      "centerV": "מרכז אנכי",
+      "duplicate": "שכפל",
+      "bringForward": "קדימה",
+      "sendBack": "אחורה",
       "delete": "מחק אלמנט"
     }
   },
