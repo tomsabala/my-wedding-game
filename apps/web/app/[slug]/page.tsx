@@ -43,10 +43,10 @@ export default async function PlayerWelcomePage({ params }: Props) {
         </span>
       </header>
 
-      <div className="flex-1 px-6 pb-6 flex flex-col items-center">
-        <div className="w-full max-w-xl flex flex-col flex-1">
+      <div className="flex-1 px-6 pb-6 flex flex-col items-center justify-center">
+        <div className="w-full max-w-xl flex flex-col gap-4">
           {/* Join card */}
-          <div className="flex-1 rounded-2xl bg-wedding-surface border border-wedding-outline-variant p-6 shadow-sm flex flex-col">
+          <div className="rounded-2xl bg-wedding-surface border border-wedding-outline-variant p-6 shadow-sm">
             <h2 className="text-base font-semibold text-wedding-on-surface">
               {t('welcomeHeading', { coupleNames: game.coupleNames })}
             </h2>
@@ -63,7 +63,7 @@ export default async function PlayerWelcomePage({ params }: Props) {
               </span>
             </div>
 
-            <div className="mt-5 flex flex-col flex-1">
+            <div className="mt-5">
               <JoinGameForm slug={slug} />
             </div>
           </div>
