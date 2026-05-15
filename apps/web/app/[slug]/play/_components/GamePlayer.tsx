@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
 import { submitAnswer, finishGame, type PlayGame } from '@/app/actions/players'
-import { shuffleArray } from '@repo/shared'
+import { shuffleArray, calculateQuestionScore } from '@repo/shared'
 import {
   clearProgress,
   readPlayer,
@@ -19,7 +19,6 @@ import {
 import AnswerTile from '@/components/game/AnswerTile'
 import GameNav from './GameNav'
 
-const FEEDBACK_DELAY_MS = 400
 
 type Bootstrap = {
   player: StoredPlayer
@@ -201,9 +200,11 @@ function QuestionRound({
   const t = useTranslations('game')
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [locked, setLocked] = useState(false)
-  const [lastResult, setLastResult] = useState<{ isCorrect: boolean; correctIndex: number } | null>(
-    null,
-  )
+  const [result, setResult] = useState<{
+    isCorrect: boolean
+    correctIndex: number
+    scoreGained: number
+  } | null>(null)
   const startedAtRef = useRef<number>(0)
 
   const [shuffleOrder] = useState(() => shuffleArray(question.options.map((_, i) => i)))
@@ -219,27 +220,30 @@ function QuestionRound({
   )
 
   const handleLock = useCallback(
-    async (idx: number) => {
+    (idx: number) => {
       if (locked) return
       setLocked(true)
       setSelectedIndex(idx)
+      // Capture time only up to the moment the user locks — thinking time only
       const timeTakenMs = startedAtRef.current === 0 ? 0 : Date.now() - startedAtRef.current
 
-      const result = await submitAnswer({
+      // Evaluate locally — correctIndex is in the game payload so no server wait needed
+      const serverIdx = shuffleOrder[idx]!
+      const isCorrect = serverIdx === question.correctIndex
+      const scoreGained = calculateQuestionScore(isCorrect, timeTakenMs)
+      const shuffledCorrectIndex = shuffleOrder.indexOf(question.correctIndex)
+
+      setResult({ isCorrect, correctIndex: shuffledCorrectIndex, scoreGained })
+
+      // Persist in background — does not block the UI
+      void submitAnswer({
         playerId,
         questionId: question.id,
-        selectedIndex: shuffleOrder[idx]!,
+        selectedIndex: serverIdx,
         timeTakenMs,
       })
-
-      const scoreGained = result.success ? result.data.questionScore : 0
-      const isCorrect = result.success ? result.data.isCorrect : false
-      const serverCorrectIndex = result.success ? result.data.correctIndex : -1
-      const shuffledCorrectIndex = serverCorrectIndex >= 0 ? shuffleOrder.indexOf(serverCorrectIndex) : -1
-      setLastResult({ isCorrect, correctIndex: shuffledCorrectIndex })
-      setTimeout(() => onComplete(scoreGained), FEEDBACK_DELAY_MS)
     },
-    [locked, playerId, question.id, onComplete, shuffleOrder],
+    [locked, playerId, question, shuffleOrder],
   )
 
   return (
@@ -262,21 +266,27 @@ function QuestionRound({
             text={option}
             selected={selectedIndex === i}
             locked={locked}
-            isCorrect={locked && lastResult ? i === lastResult.correctIndex : false}
-            isWrong={locked && lastResult ? !lastResult.isCorrect && selectedIndex === i : false}
-            pending={locked && !lastResult && selectedIndex === i}
-            onClick={() => setSelectedIndex(i)}
+            isCorrect={locked && result ? i === result.correctIndex : false}
+            isWrong={locked && result ? !result.isCorrect && selectedIndex === i : false}
+            pending={false}
+            onClick={() => !locked && setSelectedIndex(i)}
           />
         ))}
       </div>
 
-      <Button
-        onClick={() => selectedIndex !== null && handleLock(selectedIndex)}
-        disabled={selectedIndex === null || locked}
-        className="self-end"
-      >
-        {t('lockAnswer')}
-      </Button>
+      {result ? (
+        <Button onClick={() => onComplete(result.scoreGained)} className="self-end">
+          {t('nextQuestion')}
+        </Button>
+      ) : (
+        <Button
+          onClick={() => selectedIndex !== null && handleLock(selectedIndex)}
+          disabled={selectedIndex === null}
+          className="self-end"
+        >
+          {t('lockAnswer')}
+        </Button>
+      )}
     </div>
   )
 }

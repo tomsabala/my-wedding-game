@@ -86,6 +86,7 @@ export type PlayGame = {
     text: string
     options: string[]
     position: number
+    correctIndex: number
   }[]
   passingCards: {
     id: string
@@ -105,7 +106,7 @@ export async function getGameForPlay(slug: string): Promise<PlayGame | null> {
       status: true,
       questions: {
         orderBy: { position: 'asc' },
-        select: { id: true, text: true, options: true, position: true },
+        select: { id: true, text: true, options: true, position: true, correctIndex: true },
       },
       passingCards: {
         select: {
@@ -129,6 +130,7 @@ export async function getGameForPlay(slug: string): Promise<PlayGame | null> {
       text: q.text,
       options: q.options as string[],
       position: q.position,
+      correctIndex: q.correctIndex,
     })),
     passingCards: game.passingCards.map((c) => ({
       id: c.id,
