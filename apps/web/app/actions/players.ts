@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from '@repo/db'
-import { calculateQuestionScore, calculateTotalScore, type PassingCardType } from '@repo/shared'
+import { calculateQuestionScore, calculateTotalScore, type PassingCardType, type CardLayout } from '@repo/shared'
 import { revalidatePath } from 'next/cache'
 
 import { type ActionResult } from '@/lib/actions'
@@ -101,6 +101,7 @@ export type PlayGame = {
     id: string
     type: PassingCardType
     content: string
+    layout: CardLayout | null
     afterQuestionPosition: number | null
   }[]
 }
@@ -122,6 +123,7 @@ export async function getGameForPlay(slug: string): Promise<PlayGame | null> {
           id: true,
           type: true,
           content: true,
+          layout: true,
           afterQuestionPosition: true,
         },
       },
@@ -145,6 +147,7 @@ export async function getGameForPlay(slug: string): Promise<PlayGame | null> {
       id: c.id,
       type: c.type as PassingCardType,
       content: c.content,
+      layout: c.layout as CardLayout | null,
       afterQuestionPosition: c.afterQuestionPosition,
     })),
   }
