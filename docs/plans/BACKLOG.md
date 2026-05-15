@@ -1,15 +1,15 @@
 # Backlog
 
-## Top Priority
+## In Progress / Remaining
 
-1. **Game deployment** — allow couples to publish/deploy their game and share the QR code with guests
-2. **Cards edit** — edit passing cards content and configuration
-3. **Media upload** — support uploading images/media for questions or cards
-4. **Game UI fine tune** — polish the in-game player experience
-5. **Statistics and live leaderboard** — real-time leaderboard updates and per-game stats
-6. **Guest name input** — prompt guests to enter their name before starting the game
+1. **Performance** — Suspense boundaries and skeleton screens; DB optimisations and optimistic UI shipped in performance-v2
+2. **Home page translation** — i18n/l10n of the marketing landing page (`next-intl` configured for Hebrew but marketing page has hardcoded English strings)
 
-## Medium Priority
+## Done
 
-1. **Performance** — ongoing improvements to load times and responsiveness
-2. **Home page translation** — internationalisation / localisation of the marketing landing page
+- **Game deployment** — deploy/undeploy, QR code download, slug-based sharing
+- **Cards edit** — full drag/resize/rotate visual editor
+- **Media upload** — Supabase Storage, images + video, 25 MB limit
+- **Game UI fine tune** — timer, answer feedback, transitions, wedding theme
+- **Statistics and live leaderboard** — Realtime leaderboard via Supabase Realtime (merged in performance-v2)
+- **Guest name input** — name form before game, stored in `Player.displayName`
