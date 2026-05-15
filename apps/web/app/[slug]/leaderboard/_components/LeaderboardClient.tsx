@@ -1,46 +1,64 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 
+import { createClient } from '@/lib/supabase/client'
 import { getLeaderboard, type LeaderboardEntry } from '@/app/actions/players'
 import { readPlayer } from '@/lib/player-storage'
 import GameNav from '../../play/_components/GameNav'
 
-const POLL_INTERVAL_MS = 5000
-
 type Props = {
   slug: string
+  gameId: string
   coupleNames: string
   initialPlayers: LeaderboardEntry[]
 }
 
-export default function LeaderboardClient({ slug, coupleNames, initialPlayers }: Props) {
+function formatTime(ms: number): string {
+  const s = Math.floor(ms / 1000)
+  const m = Math.floor(s / 60)
+  return m > 0 ? `${m}:${String(s % 60).padStart(2, '0')}` : `${s}s`
+}
+
+export default function LeaderboardClient({ slug, gameId, coupleNames, initialPlayers }: Props) {
   const t = useTranslations('game')
   const [players, setPlayers] = useState<LeaderboardEntry[]>(initialPlayers)
-  const [myPlayerId, setMyPlayerId] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
-
-    async function tick() {
-      const stored = readPlayer()
-      const myId = stored && stored.slug === slug ? stored.playerId : null
-
-      const next = await getLeaderboard(slug)
-      if (cancelled) return
-      if (next) setPlayers(next.players)
-      setMyPlayerId(myId)
-    }
-
-    void tick()
-    const id = setInterval(() => void tick(), POLL_INTERVAL_MS)
-    return () => {
-      cancelled = true
-      clearInterval(id)
-    }
+  const myPlayerId = useMemo(() => {
+    const stored = readPlayer()
+    return stored?.slug === slug ? stored.playerId : null
   }, [slug])
+
+  useEffect(() => {
+    const supabase = createClient()
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+    async function refresh() {
+      const next = await getLeaderboard(slug)
+      if (next) setPlayers(next.players)
+    }
+
+    void refresh()
+
+    const channel = supabase
+      .channel(`leaderboard:${gameId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'players', filter: `game_id=eq.${gameId}` },
+        () => {
+          if (debounceTimer) clearTimeout(debounceTimer)
+          debounceTimer = setTimeout(() => void refresh(), 300)
+        },
+      )
+      .subscribe()
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer)
+      void supabase.removeChannel(channel)
+    }
+  }, [slug, gameId])
 
   const top3 = players.slice(0, 3)
   const rest = players.slice(3)
@@ -79,17 +97,14 @@ export default function LeaderboardClient({ slug, coupleNames, initialPlayers }:
             </div>
             <ul className="divide-y divide-wedding-outline-variant">
               {visible.map((p, i) => {
-                const rank = i + 1
                 const mine = p.id === myPlayerId
                 return (
                   <li
                     key={p.id}
-                    className={`flex items-center gap-3 p-3 ${
-                      mine ? 'bg-wedding-tertiary-container/30' : ''
-                    }`}
+                    className={`flex items-center gap-3 p-3 ${mine ? 'bg-wedding-tertiary-container/30' : ''}`}
                   >
                     <span className="size-7 inline-flex items-center justify-center rounded-full bg-wedding-surface-container text-xs font-bold text-wedding-on-surface-variant shrink-0">
-                      {rank}
+                      {i + 1}
                     </span>
                     <span className="size-8 inline-flex items-center justify-center rounded-full bg-wedding-secondary-container text-xs font-semibold text-wedding-secondary shrink-0">
                       {p.displayName.charAt(0)}
@@ -103,7 +118,7 @@ export default function LeaderboardClient({ slug, coupleNames, initialPlayers }:
                       </p>
                     </div>
                     <span className="text-sm font-bold text-wedding-on-surface shrink-0">
-                      {p.score}
+                      {formatTime(p.totalTimeTakenMs)}
                     </span>
                   </li>
                 )
@@ -169,7 +184,8 @@ function PodiumCard({
       <p className={`mt-1 ${s.text} font-semibold text-wedding-on-surface truncate w-full text-center`}>
         {player.displayName}
       </p>
-      <p className="text-xs font-bold text-wedding-on-surface">{player.score}</p>
+      <p className="text-xs font-bold text-wedding-on-surface">{player.correctCount} ✓</p>
+      <p className="text-xs text-wedding-on-surface-variant">{formatTime(player.totalTimeTakenMs)}</p>
     </div>
   )
 }
