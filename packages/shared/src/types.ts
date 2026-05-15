@@ -24,6 +24,10 @@ export interface CardTextElement {
   align: 'left' | 'center' | 'right'
   bold?: boolean
   italic?: boolean
+  fontFamily?: string
+  lineHeight?: number
+  letterSpacing?: number
+  opacity?: number
 }
 
 export interface CardImageElement {
@@ -39,6 +43,7 @@ export interface CardImageElement {
   zoom?: number
   panX?: number
   panY?: number
+  borderRadius?: number
 }
 
 export type CardElement = CardTextElement | CardImageElement

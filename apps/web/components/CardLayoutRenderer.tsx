@@ -74,7 +74,10 @@ function TextElement({ el }: { el: CardTextElement }) {
         textAlign: el.align,
         fontWeight: el.bold ? 700 : 400,
         fontStyle: el.italic ? 'italic' : 'normal',
-        lineHeight: 1.3,
+        fontFamily: el.fontFamily ?? 'inherit',
+        lineHeight: el.lineHeight ?? 1.3,
+        letterSpacing: el.letterSpacing ? `${el.letterSpacing}px` : undefined,
+        opacity: el.opacity ?? 1,
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
         userSelect: 'none',
@@ -106,6 +109,7 @@ function ImageElement({ el }: { el: CardImageElement }) {
         transformOrigin: 'center center',
         opacity: el.opacity,
         overflow: 'hidden',
+        borderRadius: el.borderRadius ? `${el.borderRadius}%` : undefined,
       }}
     >
       <img

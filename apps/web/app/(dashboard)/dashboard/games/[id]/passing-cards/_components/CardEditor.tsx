@@ -24,6 +24,14 @@ import type { MediaItem } from '@/app/actions/media'
 const BG_COLORS = ['#fdf6f0', '#ffffff', '#1a1a2e', '#2d2d2d', '#7b5455', '#5c5d6e']
 type Tab = 'background' | 'elements' | 'properties'
 
+const FONT_OPTIONS = [
+  { label: 'Heebo', value: 'var(--font-heebo)' },
+  { label: 'Playfair', value: 'var(--font-playfair)' },
+  { label: 'Jakarta', value: 'var(--font-jakarta)' },
+  { label: 'Dancing', value: 'var(--font-dancing)' },
+  { label: 'Rubik', value: 'var(--font-rubik)' },
+]
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -51,6 +59,7 @@ function defaultText(): CardTextElement {
     text: 'הקלידו טקסט כאן',
     fontSize: 28, color: '#1a1a1a', rotation: 0,
     align: 'center', bold: false, italic: false,
+    fontFamily: 'var(--font-heebo)',
   }
 }
 
@@ -77,7 +86,8 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
   const layoutRef = useRef(layout)
   layoutRef.current = layout
 
-  const selectedEl = layout.elements.find((e) => e.id === selectedId) ?? null
+  const selectedIdx = selectedId ? layout.elements.findIndex((e) => e.id === selectedId) : -1
+  const selectedEl = selectedIdx >= 0 ? layout.elements[selectedIdx]! : null
 
   useEffect(() => {
     setMediaLoading(true)
@@ -119,6 +129,50 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
   const setBg = (patch: Partial<CardBackground>) => {
     setLayout((prev) => ({ ...prev, background: { ...prev.background, ...patch } }))
   }
+
+  const duplicateEl = useCallback((id: string) => {
+    const el = layoutRef.current.elements.find((e) => e.id === id)
+    if (!el) return
+    const copy = { ...el, id: makeId(), x: Math.min(el.x + 5, 90), y: Math.min(el.y + 5, 90) } as CardElement
+    setLayout((prev) => ({ ...prev, elements: [...prev.elements, copy] }))
+    setSelectedId(copy.id)
+  }, [])
+
+  const moveElUp = useCallback((id: string) => {
+    setLayout((prev) => {
+      const idx = prev.elements.findIndex((e) => e.id === id)
+      if (idx >= prev.elements.length - 1) return prev
+      const els = [...prev.elements]
+      ;[els[idx], els[idx + 1]] = [els[idx + 1]!, els[idx]!]
+      return { ...prev, elements: els }
+    })
+  }, [])
+
+  const moveElDown = useCallback((id: string) => {
+    setLayout((prev) => {
+      const idx = prev.elements.findIndex((e) => e.id === id)
+      if (idx <= 0) return prev
+      const els = [...prev.elements]
+      ;[els[idx], els[idx - 1]] = [els[idx - 1]!, els[idx]!]
+      return { ...prev, elements: els }
+    })
+  }, [])
+
+  const centerElH = useCallback((id: string) => {
+    const el = layoutRef.current.elements.find((e) => e.id === id)
+    if (!el) return
+    updateEl(id, { x: Math.max(0, (100 - (el as CardTextElement).width) / 2) })
+  }, [updateEl])
+
+  const centerElV = useCallback((id: string) => {
+    const el = layoutRef.current.elements.find((e) => e.id === id)
+    if (!el) return
+    if (el.type === 'image') {
+      updateEl(id, { y: Math.max(0, (100 - (el as CardImageElement).height) / 2) })
+    } else {
+      updateEl(id, { y: 40 })
+    }
+  }, [updateEl])
 
   // ── Drag / Resize / Rotate on canvas ─────────────────────────────────────
 
@@ -332,7 +386,19 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
               <ElementsPanel elements={layout.elements} selectedId={selectedId} onSelect={setSelectedId} onAddText={addText} onAddImage={addImage} onDelete={deleteEl} mediaItems={mediaItems} mediaLoading={mediaLoading} t={t} />
             )}
             {tab === 'properties' && (
-              <PropertiesPanel element={selectedEl} onUpdate={(p) => selectedId && updateEl(selectedId, p)} onDelete={() => selectedId && deleteEl(selectedId)} t={t} />
+              <PropertiesPanel
+                element={selectedEl}
+                onUpdate={(p) => selectedId && updateEl(selectedId, p)}
+                onDelete={() => selectedId && deleteEl(selectedId)}
+                onDuplicate={() => selectedId && duplicateEl(selectedId)}
+                onMoveUp={() => selectedId && moveElUp(selectedId)}
+                onMoveDown={() => selectedId && moveElDown(selectedId)}
+                canMoveUp={selectedIdx >= 0 && selectedIdx < layout.elements.length - 1}
+                canMoveDown={selectedIdx > 0}
+                onCenterH={() => selectedId && centerElH(selectedId)}
+                onCenterV={() => selectedId && centerElV(selectedId)}
+                t={t}
+              />
             )}
           </div>
 
@@ -586,11 +652,18 @@ function ElementsPanel({
 // ─── PropertiesPanel ──────────────────────────────────────────────────────────
 
 function PropertiesPanel({
-  element, onUpdate, onDelete, t,
+  element, onUpdate, onDelete, onDuplicate, onMoveUp, onMoveDown, canMoveUp, canMoveDown, onCenterH, onCenterV, t,
 }: {
   element: CardElement | null
   onUpdate: (patch: Partial<CardElement>) => void
   onDelete: () => void
+  onDuplicate: () => void
+  onMoveUp: () => void
+  onMoveDown: () => void
+  canMoveUp: boolean
+  canMoveDown: boolean
+  onCenterH: () => void
+  onCenterV: () => void
   t: ReturnType<typeof useTranslations<'cardEditor'>>
 }) {
   if (!element) {
@@ -606,7 +679,33 @@ function PropertiesPanel({
           <textarea value={el.text} onChange={(e) => onUpdate({ text: e.target.value })} rows={3} dir="rtl"
             className="rounded-md border border-wedding-outline-variant bg-wedding-surface p-2 text-sm text-wedding-on-surface focus:border-wedding-primary focus:outline-none resize-none" />
         </div>
+
+        {/* Font family */}
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-semibold text-wedding-on-surface-variant">{t('properties.fontFamily')}</label>
+          <div className="flex flex-wrap gap-1">
+            {FONT_OPTIONS.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                style={{ fontFamily: f.value }}
+                onClick={() => onUpdate({ fontFamily: f.value })}
+                className={`px-2 py-1 rounded border text-sm transition-colors ${
+                  (el.fontFamily ?? 'var(--font-heebo)') === f.value
+                    ? 'bg-wedding-primary text-wedding-on-primary border-wedding-primary'
+                    : 'bg-wedding-surface-container text-wedding-on-surface-variant border-wedding-outline-variant hover:border-wedding-primary'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <SliderField label={t('properties.fontSize')} min={12} max={80} step={1} value={el.fontSize} onChange={(v) => onUpdate({ fontSize: v })} display={`${el.fontSize}px`} />
+        <SliderField label={t('properties.lineHeight')} min={0.8} max={3} step={0.1} value={el.lineHeight ?? 1.3} onChange={(v) => onUpdate({ lineHeight: v })} display={(el.lineHeight ?? 1.3).toFixed(1)} />
+        <SliderField label={t('properties.letterSpacing')} min={-2} max={20} step={0.5} value={el.letterSpacing ?? 0} onChange={(v) => onUpdate({ letterSpacing: v })} display={`${(el.letterSpacing ?? 0)}px`} />
+
         <div className="flex flex-col gap-1">
           <label className="text-xs font-semibold text-wedding-on-surface-variant">{t('properties.color')}</label>
           <div className="flex items-center gap-2">
@@ -614,6 +713,9 @@ function PropertiesPanel({
             <span className="text-xs text-wedding-on-surface-variant">{el.color}</span>
           </div>
         </div>
+
+        <SliderField label={t('properties.opacity')} min={0.1} max={1} step={0.05} value={el.opacity ?? 1} onChange={(v) => onUpdate({ opacity: v })} display={`${Math.round((el.opacity ?? 1) * 100)}%`} />
+
         <div className="flex flex-col gap-1">
           <label className="text-xs font-semibold text-wedding-on-surface-variant">{t('properties.align')}</label>
           <div className="flex gap-1">
@@ -627,13 +729,52 @@ function PropertiesPanel({
             ))}
           </div>
         </div>
+
         <div className="flex gap-2">
           <button type="button" onClick={() => onUpdate({ bold: !el.bold })}
             className={`flex-1 py-1.5 rounded text-sm font-bold transition-colors ${el.bold ? 'bg-wedding-primary text-wedding-on-primary' : 'bg-wedding-surface-container text-wedding-on-surface-variant'}`}>B</button>
           <button type="button" onClick={() => onUpdate({ italic: !el.italic })}
             className={`flex-1 py-1.5 rounded text-sm italic transition-colors ${el.italic ? 'bg-wedding-primary text-wedding-on-primary' : 'bg-wedding-surface-container text-wedding-on-surface-variant'}`}>I</button>
         </div>
+
         <SliderField label={t('properties.rotation')} min={-180} max={180} step={1} value={el.rotation} onChange={(v) => onUpdate({ rotation: v })} display={`${el.rotation}°`} />
+
+        {/* Center on canvas */}
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-semibold text-wedding-on-surface-variant">{t('properties.position')}</label>
+          <div className="flex gap-1">
+            <button type="button" onClick={onCenterH}
+              className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
+              <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>align_horizontal_center</span>
+              {t('properties.centerH')}
+            </button>
+            <button type="button" onClick={onCenterV}
+              className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
+              <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>align_vertical_center</span>
+              {t('properties.centerV')}
+            </button>
+          </div>
+        </div>
+
+        {/* Layer order + duplicate */}
+        <div className="flex gap-1">
+          <button type="button" onClick={onDuplicate}
+            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
+            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>content_copy</span>
+            {t('properties.duplicate')}
+          </button>
+          <button type="button" onClick={onMoveUp} disabled={!canMoveUp}
+            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
+            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>arrow_upward</span>
+            {t('properties.bringForward')}
+          </button>
+          <button type="button" onClick={onMoveDown} disabled={!canMoveDown}
+            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
+            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>arrow_downward</span>
+            {t('properties.sendBack')}
+          </button>
+        </div>
+
         <button type="button" onClick={onDelete} className="w-full py-1.5 rounded text-xs text-destructive border border-destructive hover:bg-destructive/10 transition-colors">
           {t('properties.delete')}
         </button>
@@ -645,10 +786,48 @@ function PropertiesPanel({
   return (
     <div className="space-y-4">
       <SliderField label={t('properties.opacity')} min={0.1} max={1} step={0.05} value={el.opacity} onChange={(v) => onUpdate({ opacity: v })} display={`${Math.round(el.opacity * 100)}%`} />
+      <SliderField label={t('properties.borderRadius')} min={0} max={50} step={1} value={el.borderRadius ?? 0} onChange={(v) => onUpdate({ borderRadius: v })} display={`${el.borderRadius ?? 0}%`} />
       <SliderField label={t('properties.imageZoom')} min={1} max={4} step={0.05} value={el.zoom ?? 1} onChange={(v) => onUpdate({ zoom: v })} />
       <SliderField label={t('properties.panX')} min={0} max={1} step={0.01} value={el.panX ?? 0.5} onChange={(v) => onUpdate({ panX: v })} />
       <SliderField label={t('properties.panY')} min={0} max={1} step={0.01} value={el.panY ?? 0.5} onChange={(v) => onUpdate({ panY: v })} />
       <SliderField label={t('properties.rotation')} min={-180} max={180} step={1} value={el.rotation} onChange={(v) => onUpdate({ rotation: v })} display={`${el.rotation}°`} />
+
+      {/* Center on canvas */}
+      <div className="flex flex-col gap-1">
+        <label className="text-xs font-semibold text-wedding-on-surface-variant">{t('properties.position')}</label>
+        <div className="flex gap-1">
+          <button type="button" onClick={onCenterH}
+            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
+            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>align_horizontal_center</span>
+            {t('properties.centerH')}
+          </button>
+          <button type="button" onClick={onCenterV}
+            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
+            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>align_vertical_center</span>
+            {t('properties.centerV')}
+          </button>
+        </div>
+      </div>
+
+      {/* Layer order + duplicate */}
+      <div className="flex gap-1">
+        <button type="button" onClick={onDuplicate}
+          className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
+          <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>content_copy</span>
+          {t('properties.duplicate')}
+        </button>
+        <button type="button" onClick={onMoveUp} disabled={!canMoveUp}
+          className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
+          <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>arrow_upward</span>
+          {t('properties.bringForward')}
+        </button>
+        <button type="button" onClick={onMoveDown} disabled={!canMoveDown}
+          className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
+          <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>arrow_downward</span>
+          {t('properties.sendBack')}
+        </button>
+      </div>
+
       <button type="button" onClick={onDelete} className="w-full py-1.5 rounded text-xs text-destructive border border-destructive hover:bg-destructive/10 transition-colors">
         {t('properties.delete')}
       </button>
