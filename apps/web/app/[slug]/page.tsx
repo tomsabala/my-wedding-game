@@ -36,7 +36,7 @@ export default async function PlayerWelcomePage({ params }: Props) {
   }
 
   return (
-    <main dir="rtl" className="min-h-screen bg-wedding-bg flex flex-col">
+    <main dir="rtl" className="h-screen overflow-hidden bg-wedding-bg flex flex-col">
       <header className="px-6 py-4 flex items-center">
         <span className="font-serif text-lg font-semibold text-wedding-primary">
           Our Wedding Game
@@ -63,7 +63,7 @@ export default async function PlayerWelcomePage({ params }: Props) {
               </span>
             </div>
 
-            <div className="mt-auto pt-5">
+            <div className="mt-5 flex flex-col flex-1">
               <JoinGameForm slug={slug} />
             </div>
           </div>

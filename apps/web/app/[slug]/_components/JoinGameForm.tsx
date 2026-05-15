@@ -41,7 +41,7 @@ export default function JoinGameForm({ slug }: { slug: string }) {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3" noValidate>
+    <form onSubmit={submit} className="flex flex-col flex-1 gap-3" noValidate>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="player-name">{t('yourName')}</Label>
         <Input
@@ -55,7 +55,7 @@ export default function JoinGameForm({ slug }: { slug: string }) {
         />
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <Button type="submit" size="lg" disabled={isPending} className="w-full py-6 text-base font-semibold">
+      <Button type="submit" size="lg" disabled={isPending} className="w-full py-6 text-base font-semibold mt-auto">
         {isPending ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (
