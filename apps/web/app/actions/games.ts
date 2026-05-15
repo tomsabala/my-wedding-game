@@ -69,7 +69,7 @@ export async function getGame(id: string) {
         _count: { select: { questions: true, players: true } },
       },
     }),
-    [`game-${id}`],
+    [`game-${user.id}-${id}`],
     { tags: [`game-${id}`] },
   )()
 
@@ -102,7 +102,7 @@ export async function getGameForSettings(id: string) {
       where: { id },
       select: { id: true, userId: true, coupleNames: true, weddingDate: true, tagline: true },
     }),
-    [`game-settings-${id}`],
+    [`game-settings-${user.id}-${id}`],
     { tags: [`game-${id}`] },
   )()
   if (!game || game.userId !== user.id) notFound()

@@ -21,7 +21,7 @@ export async function getPassingCards(gameId: string) {
         },
       },
     }),
-    [`cards-${gameId}`],
+    [`cards-${user.id}-${gameId}`],
     { tags: [`game-${gameId}`] },
   )()
   if (!game || game.userId !== user.id) notFound()

@@ -29,7 +29,7 @@ export async function getQuestions(gameId: string): Promise<QuestionRow[]> {
         },
       },
     }),
-    [`questions-${gameId}`],
+    [`questions-${user.id}-${gameId}`],
     { tags: [`game-${gameId}`] },
   )()
   if (!game || game.userId !== user.id) notFound()
