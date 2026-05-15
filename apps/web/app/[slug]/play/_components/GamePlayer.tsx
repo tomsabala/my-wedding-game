@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
-import { submitAnswer, finishGame, getPassingCard, type PlayGame } from '@/app/actions/players'
+import { submitAnswer, finishGame, getPassingCard, getGameForPlay, type PlayGame } from '@/app/actions/players'
 import { shuffleArray, calculateQuestionScore, type CardLayout } from '@repo/shared'
 import {
   clearAll,
@@ -23,6 +23,7 @@ import AnswerTile from '@/components/game/AnswerTile'
 import CardLayoutRenderer from '@/components/CardLayoutRenderer'
 
 type Bootstrap = {
+  game: PlayGame
   player: StoredPlayer
   initialIndex: number
   initialScore: number
@@ -55,37 +56,43 @@ function preloadImages(urls: string[], onReady: () => void) {
 
 // ─── Outer: load player + saved progress from localStorage ──────────────────
 
-export default function GamePlayer({ game }: { game: PlayGame }) {
+export default function GamePlayer({ slug }: { slug: string }) {
   const router = useRouter()
   const [bootstrap, setBootstrap] = useState<Bootstrap | null>(null)
 
   useEffect(() => {
     let cancelled = false
 
-    // Defer to a microtask so the setState is async w.r.t. the effect body
-    queueMicrotask(() => {
-      if (cancelled) return
+    void (async () => {
       const player = readPlayer()
-      if (!player || player.slug !== game.slug) {
-        router.replace(`/${game.slug}`)
+      if (!player || player.slug !== slug) {
+        router.replace(`/${slug}`)
+        return
+      }
+
+      const game = await getGameForPlay(slug)
+      if (cancelled) return
+      if (!game) {
+        router.replace(`/${slug}`)
         return
       }
 
       const progress = readProgress()
-      const matchingProgress = progress && progress.slug === game.slug ? progress : null
+      const matchingProgress = progress?.slug === slug ? progress : null
 
       setBootstrap({
+        game,
         player,
         initialIndex: matchingProgress?.currentIndex ?? 0,
         initialScore: matchingProgress?.totalScore ?? 0,
         initialShown: matchingProgress?.shownCardIds ?? [],
       })
-    })
+    })()
 
     return () => {
       cancelled = true
     }
-  }, [game.slug, router])
+  }, [slug, router])
 
   if (!bootstrap) {
     return (
@@ -95,7 +102,7 @@ export default function GamePlayer({ game }: { game: PlayGame }) {
     )
   }
 
-  return <ActiveGame game={game} bootstrap={bootstrap} />
+  return <ActiveGame game={bootstrap.game} bootstrap={bootstrap} />
 }
 
 // ─── Active game (mounted only after bootstrap is ready) ─────────────────────

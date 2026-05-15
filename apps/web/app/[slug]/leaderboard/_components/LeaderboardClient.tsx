@@ -1,18 +1,15 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 import { createClient } from '@/lib/supabase/client'
 import { getLeaderboard, type LeaderboardEntry } from '@/app/actions/players'
 import { readPlayer } from '@/lib/player-storage'
 
-type Props = {
-  slug: string
-  gameId: string
-  coupleNames: string
-  initialPlayers: LeaderboardEntry[]
-}
+type Props = { slug: string }
 
 function formatTime(ms: number): string {
   const s = Math.floor(ms / 1000)
@@ -20,9 +17,13 @@ function formatTime(ms: number): string {
   return m > 0 ? `${m}:${String(s % 60).padStart(2, '0')}` : `${s}s`
 }
 
-export default function LeaderboardClient({ slug, gameId, coupleNames, initialPlayers }: Props) {
+export default function LeaderboardClient({ slug }: Props) {
   const t = useTranslations('game')
-  const [players, setPlayers] = useState<LeaderboardEntry[]>(initialPlayers)
+  const router = useRouter()
+  const [gameId, setGameId] = useState<string | null>(null)
+  const [coupleNames, setCoupleNames] = useState('')
+  const [players, setPlayers] = useState<LeaderboardEntry[]>([])
+  const [loading, setLoading] = useState(true)
   const [showAll, setShowAll] = useState(false)
 
   const myPlayerId = useMemo(() => {
@@ -30,7 +31,25 @@ export default function LeaderboardClient({ slug, gameId, coupleNames, initialPl
     return stored?.slug === slug ? stored.playerId : null
   }, [slug])
 
+  // Initial data fetch
   useEffect(() => {
+    void (async () => {
+      const data = await getLeaderboard(slug)
+      if (!data) {
+        router.replace(`/${slug}`)
+        return
+      }
+      setGameId(data.gameId)
+      setCoupleNames(data.coupleNames)
+      setPlayers(data.players)
+      setLoading(false)
+    })()
+  }, [slug, router])
+
+  // Realtime subscription — only after gameId is known
+  useEffect(() => {
+    if (!gameId) return
+
     const supabase = createClient()
     let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -56,6 +75,14 @@ export default function LeaderboardClient({ slug, gameId, coupleNames, initialPl
       void supabase.removeChannel(channel)
     }
   }, [slug, gameId])
+
+  if (loading) {
+    return (
+      <main dir="rtl" className="fixed inset-0 flex items-center justify-center bg-wedding-bg">
+        <Loader2 className="size-6 animate-spin text-wedding-primary" />
+      </main>
+    )
+  }
 
   const top3 = players.slice(0, 3)
   const rest = players.slice(3)
