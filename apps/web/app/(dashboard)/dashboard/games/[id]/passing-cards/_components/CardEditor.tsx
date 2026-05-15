@@ -24,8 +24,10 @@ import type { MediaItem } from '@/app/actions/media'
 const BG_COLORS = ['#fdf6f0', '#ffffff', '#1a1a2e', '#2d2d2d', '#7b5455', '#5c5d6e']
 type Tab = 'background' | 'elements' | 'properties'
 
+const DEFAULT_FONT_FAMILY = 'var(--font-heebo)'
+
 const FONT_OPTIONS = [
-  { label: 'Heebo', value: 'var(--font-heebo)' },
+  { label: 'Heebo', value: DEFAULT_FONT_FAMILY },
   { label: 'Playfair', value: 'var(--font-playfair)' },
   { label: 'Jakarta', value: 'var(--font-jakarta)' },
   { label: 'Dancing', value: 'var(--font-dancing)' },
@@ -59,7 +61,7 @@ function defaultText(): CardTextElement {
     text: 'הקלידו טקסט כאן',
     fontSize: 28, color: '#1a1a1a', rotation: 0,
     align: 'center', bold: false, italic: false,
-    fontFamily: 'var(--font-heebo)',
+    fontFamily: DEFAULT_FONT_FAMILY,
   }
 }
 
@@ -138,22 +140,13 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
     setSelectedId(copy.id)
   }, [])
 
-  const moveElUp = useCallback((id: string) => {
+  const moveEl = useCallback((id: string, delta: 1 | -1) => {
     setLayout((prev) => {
       const idx = prev.elements.findIndex((e) => e.id === id)
-      if (idx >= prev.elements.length - 1) return prev
+      const next = idx + delta
+      if (next < 0 || next >= prev.elements.length) return prev
       const els = [...prev.elements]
-      ;[els[idx], els[idx + 1]] = [els[idx + 1]!, els[idx]!]
-      return { ...prev, elements: els }
-    })
-  }, [])
-
-  const moveElDown = useCallback((id: string) => {
-    setLayout((prev) => {
-      const idx = prev.elements.findIndex((e) => e.id === id)
-      if (idx <= 0) return prev
-      const els = [...prev.elements]
-      ;[els[idx], els[idx - 1]] = [els[idx - 1]!, els[idx]!]
+      ;[els[idx], els[next]] = [els[next]!, els[idx]!]
       return { ...prev, elements: els }
     })
   }, [])
@@ -391,8 +384,7 @@ export default function CardEditor({ cardId, gameId, initialLayout, onClose, onS
                 onUpdate={(p) => selectedId && updateEl(selectedId, p)}
                 onDelete={() => selectedId && deleteEl(selectedId)}
                 onDuplicate={() => selectedId && duplicateEl(selectedId)}
-                onMoveUp={() => selectedId && moveElUp(selectedId)}
-                onMoveDown={() => selectedId && moveElDown(selectedId)}
+                onMove={(delta) => selectedId && moveEl(selectedId, delta)}
                 canMoveUp={selectedIdx >= 0 && selectedIdx < layout.elements.length - 1}
                 canMoveDown={selectedIdx > 0}
                 onCenterH={() => selectedId && centerElH(selectedId)}
@@ -649,17 +641,71 @@ function ElementsPanel({
   )
 }
 
+// ─── ElementActions — shared center / z-order / duplicate / delete controls ──
+
+function ElementActions({
+  onCenterH, onCenterV, onDuplicate, onMove, canMoveUp, canMoveDown, onDelete, t,
+}: {
+  onCenterH: () => void
+  onCenterV: () => void
+  onDuplicate: () => void
+  onMove: (delta: 1 | -1) => void
+  canMoveUp: boolean
+  canMoveDown: boolean
+  onDelete: () => void
+  t: ReturnType<typeof useTranslations<'cardEditor'>>
+}) {
+  return (
+    <>
+      <div className="flex flex-col gap-1">
+        <label className="text-xs font-semibold text-wedding-on-surface-variant">{t('properties.position')}</label>
+        <div className="flex gap-1">
+          <button type="button" onClick={onCenterH}
+            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
+            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>align_horizontal_center</span>
+            {t('properties.centerH')}
+          </button>
+          <button type="button" onClick={onCenterV}
+            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
+            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>align_vertical_center</span>
+            {t('properties.centerV')}
+          </button>
+        </div>
+      </div>
+      <div className="flex gap-1">
+        <button type="button" onClick={onDuplicate}
+          className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
+          <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>content_copy</span>
+          {t('properties.duplicate')}
+        </button>
+        <button type="button" onClick={() => onMove(1)} disabled={!canMoveUp}
+          className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
+          <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>arrow_upward</span>
+          {t('properties.bringForward')}
+        </button>
+        <button type="button" onClick={() => onMove(-1)} disabled={!canMoveDown}
+          className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
+          <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>arrow_downward</span>
+          {t('properties.sendBack')}
+        </button>
+      </div>
+      <button type="button" onClick={onDelete} className="w-full py-1.5 rounded text-xs text-destructive border border-destructive hover:bg-destructive/10 transition-colors">
+        {t('properties.delete')}
+      </button>
+    </>
+  )
+}
+
 // ─── PropertiesPanel ──────────────────────────────────────────────────────────
 
 function PropertiesPanel({
-  element, onUpdate, onDelete, onDuplicate, onMoveUp, onMoveDown, canMoveUp, canMoveDown, onCenterH, onCenterV, t,
+  element, onUpdate, onDelete, onDuplicate, onMove, canMoveUp, canMoveDown, onCenterH, onCenterV, t,
 }: {
   element: CardElement | null
   onUpdate: (patch: Partial<CardElement>) => void
   onDelete: () => void
   onDuplicate: () => void
-  onMoveUp: () => void
-  onMoveDown: () => void
+  onMove: (delta: 1 | -1) => void
   canMoveUp: boolean
   canMoveDown: boolean
   onCenterH: () => void
@@ -680,7 +726,6 @@ function PropertiesPanel({
             className="rounded-md border border-wedding-outline-variant bg-wedding-surface p-2 text-sm text-wedding-on-surface focus:border-wedding-primary focus:outline-none resize-none" />
         </div>
 
-        {/* Font family */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-semibold text-wedding-on-surface-variant">{t('properties.fontFamily')}</label>
           <div className="flex flex-wrap gap-1">
@@ -691,7 +736,7 @@ function PropertiesPanel({
                 style={{ fontFamily: f.value }}
                 onClick={() => onUpdate({ fontFamily: f.value })}
                 className={`px-2 py-1 rounded border text-sm transition-colors ${
-                  (el.fontFamily ?? 'var(--font-heebo)') === f.value
+                  (el.fontFamily ?? DEFAULT_FONT_FAMILY) === f.value
                     ? 'bg-wedding-primary text-wedding-on-primary border-wedding-primary'
                     : 'bg-wedding-surface-container text-wedding-on-surface-variant border-wedding-outline-variant hover:border-wedding-primary'
                 }`}
@@ -739,45 +784,16 @@ function PropertiesPanel({
 
         <SliderField label={t('properties.rotation')} min={-180} max={180} step={1} value={el.rotation} onChange={(v) => onUpdate({ rotation: v })} display={`${el.rotation}°`} />
 
-        {/* Center on canvas */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-wedding-on-surface-variant">{t('properties.position')}</label>
-          <div className="flex gap-1">
-            <button type="button" onClick={onCenterH}
-              className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
-              <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>align_horizontal_center</span>
-              {t('properties.centerH')}
-            </button>
-            <button type="button" onClick={onCenterV}
-              className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
-              <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>align_vertical_center</span>
-              {t('properties.centerV')}
-            </button>
-          </div>
-        </div>
-
-        {/* Layer order + duplicate */}
-        <div className="flex gap-1">
-          <button type="button" onClick={onDuplicate}
-            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
-            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>content_copy</span>
-            {t('properties.duplicate')}
-          </button>
-          <button type="button" onClick={onMoveUp} disabled={!canMoveUp}
-            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
-            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>arrow_upward</span>
-            {t('properties.bringForward')}
-          </button>
-          <button type="button" onClick={onMoveDown} disabled={!canMoveDown}
-            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
-            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>arrow_downward</span>
-            {t('properties.sendBack')}
-          </button>
-        </div>
-
-        <button type="button" onClick={onDelete} className="w-full py-1.5 rounded text-xs text-destructive border border-destructive hover:bg-destructive/10 transition-colors">
-          {t('properties.delete')}
-        </button>
+        <ElementActions
+          onCenterH={onCenterH}
+          onCenterV={onCenterV}
+          onDuplicate={onDuplicate}
+          onMove={onMove}
+          canMoveUp={canMoveUp}
+          canMoveDown={canMoveDown}
+          onDelete={onDelete}
+          t={t}
+        />
       </div>
     )
   }
@@ -792,45 +808,16 @@ function PropertiesPanel({
       <SliderField label={t('properties.panY')} min={0} max={1} step={0.01} value={el.panY ?? 0.5} onChange={(v) => onUpdate({ panY: v })} />
       <SliderField label={t('properties.rotation')} min={-180} max={180} step={1} value={el.rotation} onChange={(v) => onUpdate({ rotation: v })} display={`${el.rotation}°`} />
 
-      {/* Center on canvas */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-semibold text-wedding-on-surface-variant">{t('properties.position')}</label>
-        <div className="flex gap-1">
-          <button type="button" onClick={onCenterH}
-            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
-            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>align_horizontal_center</span>
-            {t('properties.centerH')}
-          </button>
-          <button type="button" onClick={onCenterV}
-            className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
-            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>align_vertical_center</span>
-            {t('properties.centerV')}
-          </button>
-        </div>
-      </div>
-
-      {/* Layer order + duplicate */}
-      <div className="flex gap-1">
-        <button type="button" onClick={onDuplicate}
-          className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 transition-colors flex items-center justify-center gap-1">
-          <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>content_copy</span>
-          {t('properties.duplicate')}
-        </button>
-        <button type="button" onClick={onMoveUp} disabled={!canMoveUp}
-          className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
-          <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>arrow_upward</span>
-          {t('properties.bringForward')}
-        </button>
-        <button type="button" onClick={onMoveDown} disabled={!canMoveDown}
-          className="flex-1 py-1.5 rounded text-xs bg-wedding-surface-container text-wedding-on-surface-variant hover:bg-wedding-primary/10 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
-          <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>arrow_downward</span>
-          {t('properties.sendBack')}
-        </button>
-      </div>
-
-      <button type="button" onClick={onDelete} className="w-full py-1.5 rounded text-xs text-destructive border border-destructive hover:bg-destructive/10 transition-colors">
-        {t('properties.delete')}
-      </button>
+      <ElementActions
+        onCenterH={onCenterH}
+        onCenterV={onCenterV}
+        onDuplicate={onDuplicate}
+        onMove={onMove}
+        canMoveUp={canMoveUp}
+        canMoveDown={canMoveDown}
+        onDelete={onDelete}
+        t={t}
+      />
     </div>
   )
 }

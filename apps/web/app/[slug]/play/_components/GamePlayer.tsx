@@ -205,6 +205,9 @@ function QuestionRound({
     null,
   )
   const startedAtRef = useRef<number>(0)
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => { if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current) }, [])
 
   const [shuffleOrder] = useState(() => shuffleArray(question.options.map((_, i) => i)))
   const shuffledOptions = shuffleOrder.map((i) => question.options[i]!)
@@ -237,7 +240,7 @@ function QuestionRound({
       const serverCorrectIndex = result.success ? result.data.correctIndex : -1
       const shuffledCorrectIndex = serverCorrectIndex >= 0 ? shuffleOrder.indexOf(serverCorrectIndex) : -1
       setLastResult({ isCorrect, correctIndex: shuffledCorrectIndex })
-      setTimeout(() => onComplete(scoreGained), FEEDBACK_DELAY_MS)
+      feedbackTimerRef.current = setTimeout(() => onComplete(scoreGained), FEEDBACK_DELAY_MS)
     },
     [locked, playerId, question.id, onComplete, shuffleOrder],
   )
@@ -265,7 +268,7 @@ function QuestionRound({
             isCorrect={locked && lastResult ? i === lastResult.correctIndex : false}
             isWrong={locked && lastResult ? !lastResult.isCorrect && selectedIndex === i : false}
             pending={locked && !lastResult && selectedIndex === i}
-            onClick={() => setSelectedIndex(i)}
+            onClick={() => !locked && setSelectedIndex(i)}
           />
         ))}
       </div>
