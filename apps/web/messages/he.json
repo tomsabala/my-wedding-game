@@ -240,6 +240,9 @@
     "startPlaying": "התחל לשחק",
     "gameNotLive": "המשחק לא פעיל",
     "checkBackLater": "בקרו שוב מאוחר יותר.",
+    "nameTakenTitle": "שם זה כבר בשימוש",
+    "nameTakenBody": "מישהו אחר כבר משחק תחת שם זה. תוכלו להמשיך בכל זאת.",
+    "nameTakenDismiss": "המשך לשחק",
     "errors": {
       "nameRequired": "יש להזין שם"
     }
@@ -267,7 +270,11 @@
     "answerB": "ב׳",
     "answerC": "ג׳",
     "answerD": "ד׳",
-    "answerE": "ה׳"
+    "answerE": "ה׳",
+    "exitWarningTitle": "לצאת מהמשחק?",
+    "exitWarningBody": "אם תחזרו אחורה, תצטרכו להתחיל מחדש.",
+    "exitCancel": "המשך לשחק",
+    "exitConfirm": "יציאה"
   },
   "settings": {
     "title": "הגדרות המשחק",

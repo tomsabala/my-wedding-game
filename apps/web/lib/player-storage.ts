@@ -62,6 +62,15 @@ export function writeProgress(progress: StoredProgress): void {
   safeWrite(PROGRESS_KEY, progress)
 }
 
+export function clearPlayer(): void {
+  safeRemove(PLAYER_KEY)
+}
+
 export function clearProgress(): void {
+  safeRemove(PROGRESS_KEY)
+}
+
+export function clearAll(): void {
+  safeRemove(PLAYER_KEY)
   safeRemove(PROGRESS_KEY)
 }
