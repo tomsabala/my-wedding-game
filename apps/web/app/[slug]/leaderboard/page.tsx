@@ -12,6 +12,7 @@ export default async function LeaderboardPage({ params }: Props) {
   return (
     <LeaderboardClient
       slug={slug}
+      gameId={data.gameId}
       coupleNames={data.coupleNames}
       initialPlayers={data.players}
     />

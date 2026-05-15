@@ -283,7 +283,8 @@ function QuestionScreen({
             locked={locked}
             isCorrect={locked && i === shuffledCorrectIndex}
             isWrong={locked && !!result && !result.isCorrect && selectedIndex === i}
-            onClick={() => !locked && setSelectedIndex(i)}
+            pending={locked && !result && selectedIndex === i}
+            onClick={() => setSelectedIndex(i)}
           />
         ))}
       </div>

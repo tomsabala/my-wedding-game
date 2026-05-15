@@ -19,7 +19,7 @@ import {
 import AnswerTile from '@/components/game/AnswerTile'
 import GameNav from './GameNav'
 
-const FEEDBACK_DELAY_MS = 700
+const FEEDBACK_DELAY_MS = 400
 
 type Bootstrap = {
   player: StoredPlayer
@@ -90,9 +90,9 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
   const currentQuestion = questions[currentIndex]
 
   const finalize = useCallback(
-    async (finalScore: number) => {
+    async () => {
       setFinishing(true)
-      await finishGame(bootstrap.player.playerId, finalScore)
+      await finishGame(bootstrap.player.playerId)
       clearProgress()
       router.replace(`/${game.slug}/leaderboard`)
     },
@@ -129,7 +129,7 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
       }
 
       if (isLastQuestion) {
-        void finalize(newTotalScore)
+        void finalize()
         return
       }
 
@@ -258,10 +258,9 @@ function QuestionRound({
             selected={selectedIndex === i}
             locked={locked}
             isCorrect={locked && lastResult ? i === lastResult.correctIndex : false}
-            isWrong={
-              locked && lastResult ? !lastResult.isCorrect && selectedIndex === i : false
-            }
-            onClick={() => !locked && setSelectedIndex(i)}
+            isWrong={locked && lastResult ? !lastResult.isCorrect && selectedIndex === i : false}
+            pending={locked && !lastResult && selectedIndex === i}
+            onClick={() => setSelectedIndex(i)}
           />
         ))}
       </div>

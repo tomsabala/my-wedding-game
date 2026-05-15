@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from '@repo/db'
-import { calculateQuestionScore, type PassingCardType } from '@repo/shared'
+import { calculateQuestionScore, calculateTotalScore, type PassingCardType } from '@repo/shared'
 import { revalidatePath } from 'next/cache'
 
 import { type ActionResult } from '@/lib/actions'
@@ -182,12 +182,15 @@ export async function submitAnswer(data: {
   return { success: true, data: { isCorrect, questionScore } }
 }
 
-export async function finishGame(
-  playerId: string,
-  score: number,
-): Promise<ActionResult> {
-  await prisma.player.update({
-    where: { id: playerId },
+export async function finishGame(playerId: string): Promise<ActionResult> {
+  const answers = await prisma.playerAnswer.findMany({
+    where: { playerId },
+    select: { isCorrect: true, timeTakenMs: true },
+  })
+  const score = calculateTotalScore(answers)
+  // updateMany with finishedAt: null guard is a no-op if already finished
+  await prisma.player.updateMany({
+    where: { id: playerId, finishedAt: null },
     data: { score, finishedAt: new Date() },
   })
   return { success: true }
@@ -196,43 +199,43 @@ export async function finishGame(
 export type LeaderboardEntry = {
   id: string
   displayName: string
-  score: number
   correctCount: number
-  isFinished: boolean
+  totalTimeTakenMs: number
 }
 
 export async function getLeaderboard(
   slug: string,
-): Promise<{ coupleNames: string; players: LeaderboardEntry[] } | null> {
+): Promise<{ gameId: string; coupleNames: string; players: LeaderboardEntry[] } | null> {
   const game = await prisma.game.findUnique({
     where: { slug },
-    select: {
-      id: true,
-      coupleNames: true,
-      status: true,
-      players: {
-        orderBy: [{ score: 'desc' }, { finishedAt: 'asc' }],
-        select: {
-          id: true,
-          displayName: true,
-          score: true,
-          finishedAt: true,
-          answers: { where: { isCorrect: true }, select: { id: true } },
-        },
-      },
-    },
+    select: { id: true, coupleNames: true, status: true },
   })
 
   if (!game || game.status !== 'LIVE') return null
 
+  // Single GROUP BY query — one row per player instead of fetching all answer rows
+  const rows = await prisma.$queryRaw<
+    { id: string; display_name: string; correct_count: bigint; total_time_ms: bigint }[]
+  >`
+    SELECT p.id,
+           p.display_name,
+           COUNT(CASE WHEN pa.is_correct THEN 1 END) AS correct_count,
+           COALESCE(SUM(pa.time_taken_ms), 0)        AS total_time_ms
+    FROM   players p
+    LEFT JOIN player_answers pa ON pa.player_id = p.id
+    WHERE  p.game_id = ${game.id}
+    GROUP  BY p.id, p.display_name
+    ORDER  BY correct_count DESC, total_time_ms ASC
+  `
+
   return {
+    gameId: game.id,
     coupleNames: game.coupleNames,
-    players: game.players.map((p) => ({
-      id: p.id,
-      displayName: p.displayName,
-      score: p.score,
-      correctCount: p.answers.length,
-      isFinished: p.finishedAt !== null,
+    players: rows.map((r) => ({
+      id: r.id,
+      displayName: r.display_name,
+      correctCount: Number(r.correct_count),
+      totalTimeTakenMs: Number(r.total_time_ms),
     })),
   }
 }

@@ -20,7 +20,6 @@ export type ActionResult<T = void> = T extends void
 //
 // Wrapped in React cache() so multiple callers in one RSC render pay once.
 export const getAuthUser = cache(async (): Promise<User> => {
-  const t0 = performance.now()
   const headersList = await headers()
   const middlewareUserId = headersList.get('x-user-id')
 
@@ -30,7 +29,6 @@ export const getAuthUser = cache(async (): Promise<User> => {
     const {
       data: { session },
     } = await supabase.auth.getSession()
-    console.log(`[perf-server] getAuthUser (fast path — cookie read): ${(performance.now() - t0).toFixed(1)}ms`)
     if (!session?.user) throw new Error('Unauthorized')
     return session.user
   }
@@ -40,7 +38,6 @@ export const getAuthUser = cache(async (): Promise<User> => {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  console.log(`[perf-server] getAuthUser (slow path — getUser network call): ${(performance.now() - t0).toFixed(1)}ms`)
   if (!user) throw new Error('Unauthorized')
   return user
 })
@@ -49,19 +46,14 @@ export const getAuthUser = cache(async (): Promise<User> => {
  * Verifies the current user owns the given game.
  * Calls `notFound()` if the game is missing or owned by another user.
  * Returns the auth user and the game's `{ id, userId }`.
+ * Used only by mutation actions — read actions fold ownership into their data query.
  */
-// NOTE: assertGameOwner fires an extra DB query on every tab switch to verify
-// ownership. This is a redundant round trip — the page's own data query already
-// fetches the same game. It's a known bottleneck; logged here for visibility.
 export async function assertGameOwner(gameId: string) {
-  const t0 = performance.now()
   const user = await getAuthUser()
-  const tOwnership = performance.now()
   const game = await prisma.game.findUnique({
     where: { id: gameId },
     select: { id: true, userId: true },
   })
-  console.log(`[perf-server] assertGameOwner — ownership DB query: ${(performance.now() - tOwnership).toFixed(1)}ms  total (incl auth): ${(performance.now() - t0).toFixed(1)}ms`)
   if (!game || game.userId !== user.id) notFound()
   return { user, game }
 }
