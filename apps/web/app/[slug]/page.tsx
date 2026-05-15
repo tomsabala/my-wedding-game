@@ -43,7 +43,7 @@ export default async function PlayerWelcomePage({ params }: Props) {
         </span>
       </header>
 
-      <div className="flex-1 px-6 pb-6 flex flex-col items-center justify-center">
+      <div className="flex-1 px-6 pb-6 flex flex-col items-center">
         <div className="w-full max-w-xl flex flex-col gap-4">
           {/* Join card */}
           <div className="rounded-2xl bg-wedding-surface border border-wedding-outline-variant p-6 shadow-sm">
