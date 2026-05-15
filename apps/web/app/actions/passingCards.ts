@@ -3,23 +3,27 @@
 import { prisma, Prisma } from '@repo/db'
 import { passingCardSchema, type PassingCardInput, type CardLayout } from '@repo/shared'
 import { notFound } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache'
 
 import { assertGameOwner, getAuthUser, type ActionResult } from '@/lib/actions'
 
 export async function getPassingCards(gameId: string) {
   const user = await getAuthUser()
-  const game = await prisma.game.findUnique({
-    where: { id: gameId },
-    select: {
-      userId: true,
-      _count: { select: { questions: true } },
-      passingCards: {
-        orderBy: [{ afterQuestionPosition: 'asc' }],
-        select: { id: true, gameId: true, type: true, content: true, layout: true, afterQuestionPosition: true },
+  const game = await unstable_cache(
+    async () => prisma.game.findUnique({
+      where: { id: gameId },
+      select: {
+        userId: true,
+        _count: { select: { questions: true } },
+        passingCards: {
+          orderBy: [{ afterQuestionPosition: 'asc' }],
+          select: { id: true, gameId: true, type: true, content: true, layout: true, afterQuestionPosition: true },
+        },
       },
-    },
-  })
+    }),
+    [`cards-${gameId}`],
+    { tags: [`game-${gameId}`] },
+  )()
   if (!game || game.userId !== user.id) notFound()
   return { passingCards: game.passingCards, questionCount: game._count.questions }
 }
@@ -45,6 +49,7 @@ export async function createPassingCard(
     },
   })
 
+  revalidateTag(`game-${gameId}`, 'default')
   revalidatePath(`/dashboard/games/${gameId}/passing-cards`)
   return { success: true, data: { id: created.id } }
 }
@@ -75,6 +80,7 @@ export async function updatePassingCard(
     },
   })
 
+  revalidateTag(`game-${existing.gameId}`, 'default')
   revalidatePath(`/dashboard/games/${existing.gameId}/passing-cards`)
   return { success: true }
 }
@@ -95,6 +101,7 @@ export async function updatePassingCardLayout(
     data: { layout: layout != null ? (layout as unknown as Prisma.InputJsonValue) : Prisma.DbNull },
   })
 
+  revalidateTag(`game-${existing.gameId}`, 'default')
   revalidatePath(`/dashboard/games/${existing.gameId}/passing-cards`)
   return { success: true }
 }
@@ -109,6 +116,7 @@ export async function deletePassingCard(id: string): Promise<ActionResult> {
 
   await prisma.passingCard.delete({ where: { id } })
 
+  revalidateTag(`game-${existing.gameId}`, 'default')
   revalidatePath(`/dashboard/games/${existing.gameId}/passing-cards`)
   return { success: true }
 }
@@ -128,6 +136,7 @@ export async function savePassingCardsSequence(
     ),
   )
 
+  revalidateTag(`game-${gameId}`, 'default')
   revalidatePath(`/dashboard/games/${gameId}/passing-cards`)
   return { success: true }
 }

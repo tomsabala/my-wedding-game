@@ -3,17 +3,21 @@
 import { Prisma, prisma } from '@repo/db'
 import { createGameSchema, generateSlug, type CreateGameInput } from '@repo/shared'
 import { notFound } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache'
 
 import { getAuthUser, type ActionResult } from '@/lib/actions'
 
 export async function getGames() {
   const user = await getAuthUser()
-  return prisma.game.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-    include: { _count: { select: { players: true } } },
-  })
+  return unstable_cache(
+    async () => prisma.game.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { players: true } } },
+    }),
+    [`games-${user.id}`],
+    { tags: [`games-${user.id}`] },
+  )()
 }
 
 export async function createGame(
@@ -40,6 +44,7 @@ export async function createGame(
           status: 'DRAFT',
         },
       })
+      revalidateTag(`games-${user.id}`, 'default')
       return { success: true, data: { id: game.id } }
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') continue
@@ -53,16 +58,20 @@ export async function createGame(
 export async function getGame(id: string) {
   const user = await getAuthUser()
 
-  const game = await prisma.game.findUnique({
-    where: { id },
-    include: {
-      players: {
-        select: { id: true, displayName: true, score: true, finishedAt: true, createdAt: true },
-        orderBy: { createdAt: 'desc' },
+  const game = await unstable_cache(
+    async () => prisma.game.findUnique({
+      where: { id },
+      include: {
+        players: {
+          select: { id: true, displayName: true, score: true, finishedAt: true, createdAt: true },
+          orderBy: { createdAt: 'desc' },
+        },
+        _count: { select: { questions: true, players: true } },
       },
-      _count: { select: { questions: true, players: true } },
-    },
-  })
+    }),
+    [`game-${id}`],
+    { tags: [`game-${id}`] },
+  )()
 
   if (!game || game.userId !== user.id) notFound()
   return {
@@ -88,10 +97,14 @@ export async function getGame(id: string) {
 
 export async function getGameForSettings(id: string) {
   const user = await getAuthUser()
-  const game = await prisma.game.findUnique({
-    where: { id },
-    select: { id: true, userId: true, coupleNames: true, weddingDate: true, tagline: true },
-  })
+  const game = await unstable_cache(
+    async () => prisma.game.findUnique({
+      where: { id },
+      select: { id: true, userId: true, coupleNames: true, weddingDate: true, tagline: true },
+    }),
+    [`game-settings-${id}`],
+    { tags: [`game-${id}`] },
+  )()
   if (!game || game.userId !== user.id) notFound()
   return {
     id: game.id,
@@ -159,6 +172,8 @@ export async function deployGame(id: string): Promise<ActionResult> {
     data: { status: 'LIVE' },
   })
 
+  revalidateTag(`game-${id}`, 'default')
+  revalidateTag(`games-${user.id}`, 'default')
   revalidatePath('/dashboard')
   revalidatePath(`/dashboard/games/${id}`)
   return { success: true }
@@ -175,6 +190,8 @@ export async function undeployGame(id: string): Promise<ActionResult> {
     data: { status: 'DRAFT' },
   })
 
+  revalidateTag(`game-${id}`, 'default')
+  revalidateTag(`games-${user.id}`, 'default')
   revalidatePath('/dashboard')
   revalidatePath(`/dashboard/games/${id}`)
   return { success: true }
@@ -192,6 +209,7 @@ export async function resetGame(id: string): Promise<ActionResult> {
 
   await prisma.player.deleteMany({ where: { gameId: id } })
 
+  revalidateTag(`game-${id}`, 'default')
   revalidatePath('/dashboard')
   revalidatePath(`/dashboard/games/${id}`)
   return { success: true }
@@ -222,6 +240,8 @@ export async function updateGame(
     },
   })
 
+  revalidateTag(`game-${id}`, 'default')
+  revalidateTag(`games-${user.id}`, 'default')
   revalidatePath('/dashboard')
   revalidatePath(`/dashboard/games/${id}`)
   revalidatePath(`/dashboard/games/${id}/settings`)
@@ -236,6 +256,8 @@ export async function deleteGame(id: string): Promise<ActionResult> {
 
   await prisma.game.delete({ where: { id, userId: user.id } })
 
+  revalidateTag(`game-${id}`, 'default')
+  revalidateTag(`games-${user.id}`, 'default')
   revalidatePath('/dashboard')
   return { success: true }
 }

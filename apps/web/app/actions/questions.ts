@@ -3,7 +3,7 @@
 import { prisma } from '@repo/db'
 import { questionSchema, type QuestionInput } from '@repo/shared'
 import { notFound } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache'
 
 import { assertGameOwner, getAuthUser, type ActionResult } from '@/lib/actions'
 
@@ -18,16 +18,20 @@ type QuestionRow = {
 
 export async function getQuestions(gameId: string): Promise<QuestionRow[]> {
   const user = await getAuthUser()
-  const game = await prisma.game.findUnique({
-    where: { id: gameId },
-    select: {
-      userId: true,
-      questions: {
-        orderBy: { position: 'asc' },
-        select: { id: true, gameId: true, text: true, options: true, correctIndex: true, position: true },
+  const game = await unstable_cache(
+    async () => prisma.game.findUnique({
+      where: { id: gameId },
+      select: {
+        userId: true,
+        questions: {
+          orderBy: { position: 'asc' },
+          select: { id: true, gameId: true, text: true, options: true, correctIndex: true, position: true },
+        },
       },
-    },
-  })
+    }),
+    [`questions-${gameId}`],
+    { tags: [`game-${gameId}`] },
+  )()
   if (!game || game.userId !== user.id) notFound()
   return game.questions.map((q) => ({
     id: q.id,
@@ -67,6 +71,7 @@ export async function createQuestion(
     },
   })
 
+  revalidateTag(`game-${gameId}`, 'default')
   revalidatePath(`/dashboard/games/${gameId}`)
   revalidatePath(`/dashboard/games/${gameId}/questions`)
   return { success: true, data: { id: created.id } }
@@ -97,6 +102,7 @@ export async function updateQuestion(
     },
   })
 
+  revalidateTag(`game-${existing.gameId}`, 'default')
   revalidatePath(`/dashboard/games/${existing.gameId}`)
   revalidatePath(`/dashboard/games/${existing.gameId}/questions`)
   return { success: true }
@@ -119,6 +125,7 @@ export async function deleteQuestion(id: string): Promise<ActionResult> {
     })
   })
 
+  revalidateTag(`game-${existing.gameId}`, 'default')
   revalidatePath(`/dashboard/games/${existing.gameId}`)
   revalidatePath(`/dashboard/games/${existing.gameId}/questions`)
   return { success: true }
@@ -140,6 +147,7 @@ export async function reorderQuestions(
     WHERE  q.id = v.id AND q.game_id = ${gameId}
   `
 
+  revalidateTag(`game-${gameId}`, 'default')
   revalidatePath(`/dashboard/games/${gameId}/questions`)
   return { success: true }
 }

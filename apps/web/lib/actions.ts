@@ -33,13 +33,13 @@ export const getAuthUser = cache(async (): Promise<User> => {
     return session.user
   }
 
-  // Fallback: full JWT verification via Supabase network call
+  // Fallback: read session from cookie (consistent with middleware)
   const supabase = await createClient()
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-  return user
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session?.user) throw new Error('Unauthorized')
+  return session.user
 })
 
 /**

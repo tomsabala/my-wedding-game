@@ -35,10 +35,12 @@ export async function middleware(request: NextRequest) {
     },
   )
 
-  // Refresh session — required by @supabase/ssr on every request
+  // Read session from cookie — local parse, no Supabase Auth network call.
+  // Token refresh (if expiring) still happens via the setAll cookie handler.
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
   // Stamp the verified user ID so RSCs can use getSession() (cookie read,
   // no network) instead of calling getUser() again.
