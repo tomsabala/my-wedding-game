@@ -156,7 +156,7 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
   if (finishing || !currentQuestion) {
     return (
       <>
-        <main dir="rtl" className="flex min-h-screen items-center justify-center bg-wedding-bg">
+        <main dir="rtl" className="fixed inset-0 flex items-center justify-center bg-wedding-bg">
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="size-6 animate-spin text-wedding-primary" />
             <p className="text-sm text-wedding-on-surface-variant">{t('finalizing')}</p>
@@ -171,7 +171,7 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
 
   return (
     <>
-      <main dir="rtl" className="min-h-screen bg-wedding-bg flex flex-col">
+      <main dir="rtl" className="fixed inset-0 bg-wedding-bg flex flex-col overflow-hidden">
         <header className="px-6 py-4 flex items-center justify-between border-b border-wedding-outline-variant bg-wedding-surface">
           <span className="font-serif text-base font-semibold text-wedding-primary">
             {game.coupleNames}
@@ -278,7 +278,7 @@ function QuestionRound({
   )
 
   return (
-    <div className="flex-1 px-5 py-6 max-w-2xl w-full mx-auto flex flex-col gap-5">
+    <div className="flex-1 overflow-y-auto px-5 py-6 max-w-2xl w-full mx-auto flex flex-col gap-5">
       <div className="flex items-center justify-between text-xs text-wedding-on-surface-variant">
         <span>{t('question', { current: questionNumber, total: totalQuestions })}</span>
       </div>
