@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
-import { submitAnswer, finishGame, type PlayGame } from '@/app/actions/players'
+import { submitAnswer, finishGame, getPassingCard, type PlayGame } from '@/app/actions/players'
 import { shuffleArray, calculateQuestionScore, type CardLayout } from '@repo/shared'
 import {
   clearAll,
@@ -115,12 +115,6 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
 
   useBackPrevention(() => setShowExitModal(true))
 
-  // Preload all card images at game start so media is cached before cards appear
-  useEffect(() => {
-    for (const card of game.passingCards) {
-      if (card.layout) preloadImages(extractImageUrls(card.layout), () => {})
-    }
-  }, [game.passingCards])
 
   const questions = game.questions
   const totalQuestions = questions.length
@@ -178,8 +172,13 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
         setCurrentCard(pendingCard)
         setCardReady(false)
 
-        const urls = pendingCard.layout ? extractImageUrls(pendingCard.layout) : []
-        preloadImages(urls, () => setCardReady(true))
+        // Fetch layout lazily then preload images — layout is not in initial RSC payload
+        void getPassingCard(game.slug, pendingCard.id).then((fullCard) => {
+          const card = fullCard ?? pendingCard
+          setCurrentCard(card)
+          const urls = card.layout ? extractImageUrls(card.layout) : []
+          preloadImages(urls, () => setCardReady(true))
+        })
         return
       }
 

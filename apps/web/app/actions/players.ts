@@ -2,7 +2,7 @@
 
 import { prisma } from '@repo/db'
 import { calculateQuestionScore, calculateTotalScore, type PassingCardType, type CardLayout } from '@repo/shared'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_cache } from 'next/cache'
 
 import { type ActionResult } from '@/lib/actions'
 
@@ -106,52 +106,56 @@ export type PlayGame = {
   }[]
 }
 
-export async function getGameForPlay(slug: string): Promise<PlayGame | null> {
-  const game = await prisma.game.findUnique({
-    where: { slug },
-    select: {
-      id: true,
-      slug: true,
-      coupleNames: true,
-      status: true,
-      questions: {
-        orderBy: { position: 'asc' },
-        select: { id: true, text: true, options: true, position: true, correctIndex: true },
-      },
-      passingCards: {
-        select: {
-          id: true,
-          type: true,
-          content: true,
-          layout: true,
-          afterQuestionPosition: true,
+export const getGameForPlay = unstable_cache(
+  async (slug: string): Promise<PlayGame | null> => {
+    const game = await prisma.game.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        slug: true,
+        coupleNames: true,
+        status: true,
+        questions: {
+          orderBy: { position: 'asc' },
+          select: { id: true, text: true, options: true, position: true, correctIndex: true },
+        },
+        passingCards: {
+          select: {
+            id: true,
+            type: true,
+            content: true,
+            // layout omitted — fetched lazily per-card via getPassingCard
+            afterQuestionPosition: true,
+          },
         },
       },
-    },
-  })
+    })
 
-  if (!game || game.status !== 'LIVE') return null
+    if (!game || game.status !== 'LIVE') return null
 
-  return {
-    gameId: game.id,
-    slug: game.slug,
-    coupleNames: game.coupleNames,
-    questions: game.questions.map((q) => ({
-      id: q.id,
-      text: q.text,
-      options: q.options as string[],
-      position: q.position,
-      correctIndex: q.correctIndex,
-    })),
-    passingCards: game.passingCards.map((c) => ({
-      id: c.id,
-      type: c.type as PassingCardType,
-      content: c.content,
-      layout: c.layout as CardLayout | null,
-      afterQuestionPosition: c.afterQuestionPosition,
-    })),
-  }
-}
+    return {
+      gameId: game.id,
+      slug: game.slug,
+      coupleNames: game.coupleNames,
+      questions: game.questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: q.options as string[],
+        position: q.position,
+        correctIndex: q.correctIndex,
+      })),
+      passingCards: game.passingCards.map((c) => ({
+        id: c.id,
+        type: c.type as PassingCardType,
+        content: c.content,
+        layout: null,
+        afterQuestionPosition: c.afterQuestionPosition,
+      })),
+    }
+  },
+  ['game-for-play'],
+  { revalidate: 300 },
+)
 
 export async function getPassingCard(slug: string, cardId: string) {
   const card = await prisma.passingCard.findFirst({
