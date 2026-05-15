@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { submitAnswer, finishGame, type PlayGame } from '@/app/actions/players'
 import { shuffleArray, calculateQuestionScore } from '@repo/shared'
 import {
+  clearAll,
   clearProgress,
   readPlayer,
   readProgress,
@@ -16,6 +17,8 @@ import {
   type StoredPlayer,
   type StoredProgress,
 } from '@/lib/player-storage'
+import { useBackPrevention } from '@/lib/useBackPrevention'
+import { ExitGameModal } from '@/components/game/ExitGameModal'
 import AnswerTile from '@/components/game/AnswerTile'
 import GameNav from './GameNav'
 
@@ -82,11 +85,18 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
   const [totalScore, setTotalScore] = useState(bootstrap.initialScore)
   const [shownCardIds, setShownCardIds] = useState<string[]>(bootstrap.initialShown)
   const [finishing, setFinishing] = useState(false)
+  const [showExitModal, setShowExitModal] = useState(false)
+
+  useBackPrevention(() => setShowExitModal(true))
 
   const questions = game.questions
-
   const totalQuestions = questions.length
   const currentQuestion = questions[currentIndex]
+
+  function handleConfirmExit() {
+    clearAll()
+    router.replace(`/${game.slug}`)
+  }
 
   const finalize = useCallback(
     async () => {
@@ -146,39 +156,50 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
 
   if (finishing || !currentQuestion) {
     return (
-      <main dir="rtl" className="flex min-h-screen items-center justify-center bg-wedding-bg">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="size-6 animate-spin text-wedding-primary" />
-          <p className="text-sm text-wedding-on-surface-variant">{t('finalizing')}</p>
-        </div>
-      </main>
+      <>
+        <main dir="rtl" className="flex min-h-screen items-center justify-center bg-wedding-bg">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="size-6 animate-spin text-wedding-primary" />
+            <p className="text-sm text-wedding-on-surface-variant">{t('finalizing')}</p>
+          </div>
+        </main>
+        {showExitModal && (
+          <ExitGameModal onCancel={() => setShowExitModal(false)} onConfirm={handleConfirmExit} />
+        )}
+      </>
     )
   }
 
   return (
-    <main dir="rtl" className="min-h-screen bg-wedding-bg flex flex-col">
-      <header className="px-6 py-4 flex items-center justify-between border-b border-wedding-outline-variant bg-wedding-surface">
-        <span className="font-serif text-base font-semibold text-wedding-primary">
-          {game.coupleNames}
-        </span>
-        <span className="text-sm font-semibold text-wedding-on-surface">
-          {t('score', { score: totalScore })}
-        </span>
-      </header>
+    <>
+      <main dir="rtl" className="min-h-screen bg-wedding-bg flex flex-col">
+        <header className="px-6 py-4 flex items-center justify-between border-b border-wedding-outline-variant bg-wedding-surface">
+          <span className="font-serif text-base font-semibold text-wedding-primary">
+            {game.coupleNames}
+          </span>
+          <span className="text-sm font-semibold text-wedding-on-surface">
+            {t('score', { score: totalScore })}
+          </span>
+        </header>
 
-      <QuestionRound
-        key={currentQuestion.id}
-        playerId={bootstrap.player.playerId}
-        question={currentQuestion}
-        questionNumber={currentIndex + 1}
-        totalQuestions={totalQuestions}
-        onComplete={(scoreGained) =>
-          advanceAfterAnswer(totalScore + scoreGained, currentQuestion.position, shownCardIds)
-        }
-      />
+        <QuestionRound
+          key={currentQuestion.id}
+          playerId={bootstrap.player.playerId}
+          question={currentQuestion}
+          questionNumber={currentIndex + 1}
+          totalQuestions={totalQuestions}
+          onComplete={(scoreGained) =>
+            advanceAfterAnswer(totalScore + scoreGained, currentQuestion.position, shownCardIds)
+          }
+        />
 
-      <GameNav slug={game.slug} active="play" />
-    </main>
+        <GameNav slug={game.slug} active="play" />
+      </main>
+
+      {showExitModal && (
+        <ExitGameModal onCancel={() => setShowExitModal(false)} onConfirm={handleConfirmExit} />
+      )}
+    </>
   )
 }
 

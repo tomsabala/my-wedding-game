@@ -7,8 +7,8 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 export type ActionResult<T = void> = T extends void
-  ? { success: true } | { success: false; error: string }
-  : { success: true; data: T } | { success: false; error: string }
+  ? { success: true; warning?: string } | { success: false; error: string }
+  : { success: true; data: T; warning?: string } | { success: false; error: string }
 
 // Fast path: middleware already called getUser() and stamped x-user-id on the
 // forwarded request headers. We trust that verification and read the User from

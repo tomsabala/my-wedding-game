@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { joinGame } from '@/app/actions/players'
-import { writePlayer } from '@/lib/player-storage'
+import { writePlayer, clearAll } from '@/lib/player-storage'
 
 export default function JoinGameForm({ slug }: { slug: string }) {
   const t = useTranslations('player')
@@ -17,6 +17,12 @@ export default function JoinGameForm({ slug }: { slug: string }) {
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  // non-null when a name-taken warning is pending dismissal
+  const [pendingJoinData, setPendingJoinData] = useState<{ playerId: string; gameId: string } | null>(null)
+
+  useEffect(() => {
+    clearAll()
+  }, [])
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,36 +37,61 @@ export default function JoinGameForm({ slug }: { slug: string }) {
         setError(result.error)
         return
       }
+      if (result.warning === 'nameTaken') {
+        setPendingJoinData(result.data)
+        return
+      }
       writePlayer({ playerId: result.data.playerId, gameId: result.data.gameId, slug })
       router.push(`/${slug}/play`)
     })
   }
 
+  function handleDismissNameTaken() {
+    writePlayer({ playerId: pendingJoinData!.playerId, gameId: pendingJoinData!.gameId, slug })
+    router.push(`/${slug}/play`)
+  }
+
   return (
-    <form onSubmit={submit} className="space-y-3" noValidate>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="player-name">{t('yourName')}</Label>
-        <Input
-          id="player-name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={80}
-          placeholder={t('namePlaceholder')}
-          autoFocus
-        />
-      </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
-      <Button type="submit" disabled={isPending} className="w-full">
-        {isPending ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : (
-          <span className="material-symbols-rounded" style={{ fontSize: '18px', lineHeight: 1 }}>
-            play_circle
-          </span>
-        )}
-        {t('startPlaying')}
-      </Button>
-    </form>
+    <>
+      <form onSubmit={submit} className="space-y-3" noValidate>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="player-name">{t('yourName')}</Label>
+          <Input
+            id="player-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={80}
+            placeholder={t('namePlaceholder')}
+            autoFocus
+          />
+        </div>
+        {error && <p className="text-xs text-destructive">{error}</p>}
+        <Button type="submit" disabled={isPending} className="w-full">
+          {isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <span className="material-symbols-rounded" style={{ fontSize: '18px', lineHeight: 1 }}>
+              play_circle
+            </span>
+          )}
+          {t('startPlaying')}
+        </Button>
+      </form>
+
+      {pendingJoinData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-wedding-surface border border-wedding-outline-variant p-6">
+            <h2 className="font-serif text-xl font-semibold text-wedding-on-surface">
+              {t('nameTakenTitle')}
+            </h2>
+            <p className="mt-2 text-sm text-wedding-on-surface-variant">{t('nameTakenBody')}</p>
+            <Button className="mt-5 w-full" onClick={handleDismissNameTaken}>
+              {t('nameTakenDismiss')}
+            </Button>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
