@@ -84,7 +84,7 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
   const [shownCardIds, setShownCardIds] = useState<string[]>(bootstrap.initialShown)
   const [finishing, setFinishing] = useState(false)
 
-  const [questions] = useState(() => shuffleArray(game.questions))
+  const questions = game.questions
 
   const totalQuestions = questions.length
   const currentQuestion = questions[currentIndex]
@@ -206,6 +206,9 @@ function QuestionRound({
   )
   const startedAtRef = useRef<number>(0)
 
+  const [shuffleOrder] = useState(() => shuffleArray(question.options.map((_, i) => i)))
+  const shuffledOptions = shuffleOrder.map((i) => question.options[i]!)
+
   useEffect(() => {
     startedAtRef.current = Date.now()
   }, [])
@@ -225,16 +228,18 @@ function QuestionRound({
       const result = await submitAnswer({
         playerId,
         questionId: question.id,
-        selectedIndex: idx,
+        selectedIndex: shuffleOrder[idx]!,
         timeTakenMs,
       })
 
       const scoreGained = result.success ? result.data.questionScore : 0
       const isCorrect = result.success ? result.data.isCorrect : false
-      setLastResult({ isCorrect, correctIndex: isCorrect ? idx : -1 })
+      const serverCorrectIndex = result.success ? result.data.correctIndex : -1
+      const shuffledCorrectIndex = serverCorrectIndex >= 0 ? shuffleOrder.indexOf(serverCorrectIndex) : -1
+      setLastResult({ isCorrect, correctIndex: shuffledCorrectIndex })
       setTimeout(() => onComplete(scoreGained), FEEDBACK_DELAY_MS)
     },
-    [locked, playerId, question.id, onComplete],
+    [locked, playerId, question.id, onComplete, shuffleOrder],
   )
 
   return (
@@ -250,7 +255,7 @@ function QuestionRound({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {question.options.map((option, i) => (
+        {shuffledOptions.map((option, i) => (
           <AnswerTile
             key={i}
             label={optionLabels[i] ?? ''}

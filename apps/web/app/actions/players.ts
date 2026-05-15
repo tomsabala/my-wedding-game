@@ -159,7 +159,7 @@ export async function submitAnswer(data: {
   questionId: string
   selectedIndex: number
   timeTakenMs: number
-}): Promise<ActionResult<{ isCorrect: boolean; questionScore: number }>> {
+}): Promise<ActionResult<{ isCorrect: boolean; questionScore: number; correctIndex: number }>> {
   const question = await prisma.question.findUnique({
     where: { id: data.questionId },
     select: { id: true, correctIndex: true },
@@ -179,7 +179,7 @@ export async function submitAnswer(data: {
     },
   })
 
-  return { success: true, data: { isCorrect, questionScore } }
+  return { success: true, data: { isCorrect, questionScore, correctIndex: question.correctIndex } }
 }
 
 export async function finishGame(playerId: string): Promise<ActionResult> {

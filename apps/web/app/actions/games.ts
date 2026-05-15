@@ -114,7 +114,7 @@ export async function getGameForPreview(id: string) {
         orderBy: { position: 'asc' },
       },
       passingCards: {
-        select: { id: true, type: true, content: true, afterQuestionPosition: true },
+        select: { id: true, type: true, content: true, layout: true, afterQuestionPosition: true },
         orderBy: [{ afterQuestionPosition: 'asc' }],
       },
     },
@@ -130,7 +130,13 @@ export async function getGameForPreview(id: string) {
       correctIndex: q.correctIndex,
       position: q.position,
     })),
-    passingCards: game.passingCards,
+    passingCards: game.passingCards.map((c) => ({
+      id: c.id,
+      type: c.type,
+      content: c.content,
+      layout: c.layout as import('@repo/shared').CardLayout | null,
+      afterQuestionPosition: c.afterQuestionPosition,
+    })),
   }
 }
 

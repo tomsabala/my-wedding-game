@@ -4,9 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { calculateQuestionScore, shuffleArray } from '@repo/shared'
-import type { PassingCardType } from '@repo/shared'
+import type { PassingCardType, CardLayout } from '@repo/shared'
 import { Button } from '@/components/ui/button'
 import AnswerTile from '@/components/game/AnswerTile'
+import CardLayoutRenderer from '@/components/CardLayoutRenderer'
 
 const FEEDBACK_DELAY_MS = 700
 
@@ -22,6 +23,7 @@ type PreviewCard = {
   id: string
   type: PassingCardType
   content: string
+  layout?: CardLayout | null
   afterQuestionPosition: number | null
 }
 
@@ -324,30 +326,38 @@ function InterstitialScreen({
         {card.type === 'DID_YOU_KNOW' ? t('didYouKnow') : t('aMoment')}
       </h1>
 
-      <div className="mt-6 rounded-3xl bg-wedding-surface border border-wedding-outline-variant p-6 flex-1 flex flex-col gap-4">
-        {card.type === 'DID_YOU_KNOW' ? (
-          <div className="flex items-center justify-center pt-4">
-            <span
-              className="material-symbols-rounded text-wedding-tertiary"
-              style={{ fontSize: '56px', lineHeight: 1 }}
-            >
-              lightbulb
-            </span>
-          </div>
-        ) : (
-          <div className="aspect-video bg-wedding-surface-container rounded-2xl flex items-center justify-center">
-            <span
-              className="material-symbols-rounded text-wedding-outline"
-              style={{ fontSize: '48px', lineHeight: 1 }}
-            >
-              {card.type === 'PHOTO' ? 'image' : 'movie'}
-            </span>
-          </div>
-        )}
-        <p className="font-serif text-lg sm:text-xl text-wedding-on-surface leading-relaxed text-center">
-          {card.content}
-        </p>
-      </div>
+      {card.layout ? (
+        <CardLayoutRenderer
+          layout={card.layout}
+          className="relative overflow-hidden mt-6 rounded-3xl flex-1"
+          style={{ aspectRatio: '9/16', maxHeight: '65vh' }}
+        />
+      ) : (
+        <div className="mt-6 rounded-3xl bg-wedding-surface border border-wedding-outline-variant p-6 flex-1 flex flex-col gap-4">
+          {card.type === 'DID_YOU_KNOW' ? (
+            <div className="flex items-center justify-center pt-4">
+              <span
+                className="material-symbols-rounded text-wedding-tertiary"
+                style={{ fontSize: '56px', lineHeight: 1 }}
+              >
+                lightbulb
+              </span>
+            </div>
+          ) : (
+            <div className="aspect-video bg-wedding-surface-container rounded-2xl flex items-center justify-center">
+              <span
+                className="material-symbols-rounded text-wedding-outline"
+                style={{ fontSize: '48px', lineHeight: 1 }}
+              >
+                {card.type === 'PHOTO' ? 'image' : 'movie'}
+              </span>
+            </div>
+          )}
+          <p className="font-serif text-lg sm:text-xl text-wedding-on-surface leading-relaxed text-center">
+            {card.content}
+          </p>
+        </div>
+      )}
 
       <Button onClick={onContinue} className="mt-6 mx-auto">
         {t('nextQuestion')}
