@@ -113,8 +113,10 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
 
   const [currentIndex, setCurrentIndex] = useState(bootstrap.initialIndex)
   const [totalScore, setTotalScore] = useState(bootstrap.initialScore)
+  const [correctCount, setCorrectCount] = useState(0)
   const [shownCardIds, setShownCardIds] = useState<string[]>(bootstrap.initialShown)
   const [finishing, setFinishing] = useState(false)
+  const [finished, setFinished] = useState<{ totalScore: number; correctCount: number } | null>(null)
   const [showExitModal, setShowExitModal] = useState(false)
   const [currentCard, setCurrentCard] = useState<PlayGame['passingCards'][number] | null>(null)
   const [cardReady, setCardReady] = useState(false)
@@ -133,19 +135,20 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
   }
 
   const finalize = useCallback(
-    async () => {
+    async (finalScore: number, finalCorrectCount: number) => {
       setFinishing(true)
       await finishGame(bootstrap.player.playerId)
       clearProgress()
-      router.replace(`/${game.slug}/leaderboard`)
+      setFinished({ totalScore: finalScore, correctCount: finalCorrectCount })
     },
-    [bootstrap.player.playerId, game.slug, router],
+    [bootstrap.player.playerId],
   )
 
   const advanceAfterAnswer = useCallback(
-    (newTotalScore: number, justAnsweredPosition: number, currentShown: string[]) => {
+    (newTotalScore: number, justAnsweredPosition: number, currentShown: string[], isCorrect: boolean) => {
       const nextIndex = currentIndex + 1
       const isLastQuestion = nextIndex >= totalQuestions
+      const newCorrectCount = correctCount + (isCorrect ? 1 : 0)
 
       const unshown = (c: { id: string }) => !currentShown.includes(c.id)
       // Passing cards gated out — flip (false as boolean) to true to re-enable
@@ -168,10 +171,11 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
         })
 
         pendingAdvanceRef.current = isLastQuestion
-          ? () => { void finalize() }
+          ? () => { void finalize(newTotalScore, newCorrectCount) }
           : () => {
               setCurrentIndex(nextIndex)
               setTotalScore(newTotalScore)
+              setCorrectCount(newCorrectCount)
               setShownCardIds([...currentShown, pendingCard.id])
               setCurrentCard(null)
               setCardReady(false)
@@ -191,7 +195,7 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
       }
 
       if (isLastQuestion) {
-        void finalize()
+        void finalize(newTotalScore, newCorrectCount)
         return
       }
 
@@ -202,10 +206,23 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
       })
       setCurrentIndex(nextIndex)
       setTotalScore(newTotalScore)
+      setCorrectCount(newCorrectCount)
       setShownCardIds(currentShown)
     },
-    [currentIndex, game, totalQuestions, finalize],
+    [currentIndex, correctCount, game, totalQuestions, finalize],
   )
+
+  if (finished) {
+    return (
+      <EndScreen
+        playerName={bootstrap.player.displayName}
+        coupleNames={game.coupleNames}
+        totalScore={finished.totalScore}
+        correctCount={finished.correctCount}
+        totalQuestions={game.questions.length}
+      />
+    )
+  }
 
   if (finishing) {
     return (
@@ -330,8 +347,8 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
           question={currentQuestion}
           questionNumber={currentIndex + 1}
           totalQuestions={totalQuestions}
-          onComplete={(scoreGained) =>
-            advanceAfterAnswer(totalScore + scoreGained, currentQuestion.position, shownCardIds)
+          onComplete={(scoreGained, isCorrect) =>
+            advanceAfterAnswer(totalScore + scoreGained, currentQuestion.position, shownCardIds, isCorrect)
           }
         />
       </main>
@@ -356,7 +373,7 @@ function QuestionRound({
   question: PlayGame['questions'][number]
   questionNumber: number
   totalQuestions: number
-  onComplete: (scoreGained: number) => void
+  onComplete: (scoreGained: number, isCorrect: boolean) => void
 }) {
   const t = useTranslations('game')
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
@@ -447,7 +464,7 @@ function QuestionRound({
         <Button
           onClick={() => {
             window.__nextQuestionClickTime = performance.now()
-            onComplete(result.scoreGained)
+            onComplete(result.scoreGained, result.isCorrect)
           }}
           className="self-end"
         >
@@ -463,5 +480,58 @@ function QuestionRound({
         </Button>
       )}
     </div>
+  )
+}
+
+// ─── End screen (shown after last question is answered) ───────────────────────
+
+function EndScreen({
+  playerName,
+  coupleNames,
+  totalScore,
+  correctCount,
+  totalQuestions,
+}: {
+  playerName: string
+  coupleNames: string
+  totalScore: number
+  correctCount: number
+  totalQuestions: number
+}) {
+  const t = useTranslations('game')
+
+  return (
+    <main dir="rtl" className="fixed inset-0 bg-wedding-bg flex flex-col items-center justify-center px-6 overflow-hidden">
+      <div className="w-full max-w-sm flex flex-col items-center text-center gap-5">
+        <span
+          className="material-symbols-rounded text-wedding-tertiary"
+          style={{ fontSize: '64px', lineHeight: 1 }}
+        >
+          favorite
+        </span>
+
+        <div>
+          <h1 className="font-serif text-3xl font-bold text-wedding-primary">
+            {t('end.heading')}
+          </h1>
+          <p className="mt-1 text-base text-wedding-on-surface">{playerName}</p>
+        </div>
+
+        <div className="rounded-2xl bg-wedding-surface border border-wedding-outline-variant p-6 w-full">
+          <p className="font-serif text-5xl font-bold text-wedding-primary">{totalScore}</p>
+          <p className="mt-1 text-sm text-wedding-on-surface-variant">{t('end.points')}</p>
+          <p className="mt-3 text-sm font-semibold text-wedding-on-surface">
+            {t('end.correctAnswers', { correct: correctCount, total: totalQuestions })}
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-wedding-primary-container/50 border border-wedding-outline-variant p-5 w-full">
+          <p className="font-serif text-base text-wedding-on-surface leading-relaxed">
+            {t('end.thankYou')}
+          </p>
+          <p className="mt-3 text-sm font-semibold text-wedding-primary">— {coupleNames}</p>
+        </div>
+      </div>
+    </main>
   )
 }

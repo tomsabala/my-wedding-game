@@ -282,7 +282,13 @@
     "exitWarningTitle": "לצאת מהמשחק?",
     "exitWarningBody": "אם תחזרו אחורה, תצטרכו להתחיל מחדש.",
     "exitCancel": "המשך לשחק",
-    "exitConfirm": "יציאה"
+    "exitConfirm": "יציאה",
+    "end": {
+      "heading": "כל הכבוד!",
+      "points": "נקודות",
+      "correctAnswers": "{correct} מתוך {total} תשובות נכונות",
+      "thankYou": "תודה שאתם כאן איתנו לחגוג את האהבה שלנו — שמחנו שהייתם חלק מהיום המיוחד הזה!"
+    }
   },
   "settings": {
     "title": "הגדרות המשחק",

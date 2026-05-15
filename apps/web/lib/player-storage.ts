@@ -12,6 +12,7 @@ export type StoredPlayer = {
   playerId: string
   gameId: string
   slug: string
+  displayName: string
 }
 
 export type StoredProgress = {

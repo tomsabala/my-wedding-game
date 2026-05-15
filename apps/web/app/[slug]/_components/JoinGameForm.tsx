@@ -35,7 +35,7 @@ export default function JoinGameForm({ slug }: { slug: string }) {
         setError(result.error === 'nameTaken' ? t('errors.nameTaken') : result.error)
         return
       }
-      writePlayer({ playerId: result.data.playerId, gameId: result.data.gameId, slug })
+      writePlayer({ playerId: result.data.playerId, gameId: result.data.gameId, slug, displayName: name })
       router.push(`/${slug}/play`)
     })
   }
