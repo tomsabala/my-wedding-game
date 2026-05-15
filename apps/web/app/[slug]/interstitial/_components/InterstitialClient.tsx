@@ -11,7 +11,6 @@ import { useBackPrevention } from '@/lib/useBackPrevention'
 import { ExitGameModal } from '@/components/game/ExitGameModal'
 
 import { Button } from '@/components/ui/button'
-import GameNav from '../../play/_components/GameNav'
 
 type Card = {
   id: string
@@ -92,7 +91,6 @@ export default function InterstitialClient({ slug, card }: { slug: string; card:
           </Button>
         </div>
 
-        <GameNav slug={slug} active="play" />
       </main>
 
       {showExitModal && (

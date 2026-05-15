@@ -20,7 +20,6 @@ import {
 import { useBackPrevention } from '@/lib/useBackPrevention'
 import { ExitGameModal } from '@/components/game/ExitGameModal'
 import AnswerTile from '@/components/game/AnswerTile'
-import GameNav from './GameNav'
 
 
 type Bootstrap = {
@@ -193,7 +192,7 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
           }
         />
 
-        <GameNav slug={game.slug} active="play" />
+
       </main>
 
       {showExitModal && (

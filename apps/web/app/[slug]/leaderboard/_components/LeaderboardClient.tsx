@@ -6,7 +6,6 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { getLeaderboard, type LeaderboardEntry } from '@/app/actions/players'
 import { readPlayer } from '@/lib/player-storage'
-import GameNav from '../../play/_components/GameNav'
 
 type Props = {
   slug: string
@@ -135,7 +134,6 @@ export default function LeaderboardClient({ slug, gameId, coupleNames, initialPl
         )}
       </div>
 
-      <GameNav slug={slug} active="leaderboard" />
     </main>
   )
 }
