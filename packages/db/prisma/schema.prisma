@@ -83,6 +83,7 @@ model Player {
 
   @@index([gameId])
   @@index([gameId, score(sort: Desc)])
+  @@index([gameId, displayName])
   @@map("players")
 }
 
@@ -99,5 +100,6 @@ model PlayerAnswer {
 
   @@index([playerId])
   @@index([questionId])
+  @@index([playerId, isCorrect, timeTakenMs])
   @@map("player_answers")
 }

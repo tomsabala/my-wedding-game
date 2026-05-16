@@ -17,7 +17,16 @@ const rubik = Rubik({
 })
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const messages = await getMessages()
+  const allMessages = await getMessages()
+  const messages = {
+    auth: allMessages['auth'],
+    dashboard: allMessages['dashboard'],
+    questions: allMessages['questions'],
+    passingCards: allMessages['passingCards'],
+    cardEditor: allMessages['cardEditor'],
+    media: allMessages['media'],
+    settings: allMessages['settings'],
+  }
   return (
     <NextIntlClientProvider messages={messages}>
       <div className={`${dancing.variable} ${rubik.variable}`}>

@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
-import { submitAnswer, finishGame, getPassingCard, getGameForPlay, type PlayGame } from '@/app/actions/players'
+import { submitAnswer, finishGame, getPassingCard, type PlayGame } from '@/app/actions/players'
 import { shuffleArray, calculateQuestionScore, type CardLayout } from '@repo/shared'
 import {
   clearAll,
@@ -56,13 +56,11 @@ function preloadImages(urls: string[], onReady: () => void) {
 
 // ─── Outer: load player + saved progress from localStorage ──────────────────
 
-export default function GamePlayer({ slug }: { slug: string }) {
+export default function GamePlayer({ slug, initialGame }: { slug: string; initialGame: PlayGame }) {
   const router = useRouter()
   const [bootstrap, setBootstrap] = useState<Bootstrap | null>(null)
 
   useEffect(() => {
-    let cancelled = false
-
     void (async () => {
       const player = readPlayer()
       if (!player || player.slug !== slug) {
@@ -70,29 +68,20 @@ export default function GamePlayer({ slug }: { slug: string }) {
         return
       }
 
-      const game = await getGameForPlay(slug)
-      if (cancelled) return
-      if (!game) {
-        router.replace(`/${slug}`)
-        return
-      }
-
       const progress = readProgress()
       const matchingProgress = progress?.slug === slug ? progress : null
 
+      // Defer so setState is not synchronous in the effect body (React compiler rule)
+      await Promise.resolve()
       setBootstrap({
-        game,
+        game: initialGame,
         player,
         initialIndex: matchingProgress?.currentIndex ?? 0,
         initialScore: matchingProgress?.totalScore ?? 0,
         initialShown: matchingProgress?.shownCardIds ?? [],
       })
     })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [slug, router])
+  }, [slug, router, initialGame])
 
   if (!bootstrap) {
     return (
@@ -137,7 +126,7 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
   const finalize = useCallback(
     async (finalScore: number, finalCorrectCount: number) => {
       setFinishing(true)
-      await finishGame(bootstrap.player.playerId)
+      await finishGame(bootstrap.player.playerId, finalScore)
       clearProgress()
       setFinished({ totalScore: finalScore, correctCount: finalCorrectCount })
     },
@@ -427,6 +416,7 @@ function QuestionRound({
         playerId,
         questionId: question.id,
         selectedIndex: serverIdx,
+        isCorrect,
         timeTakenMs,
       })
     },
@@ -506,13 +496,6 @@ function EndScreen({
   return (
     <main dir="rtl" className="fixed inset-0 bg-wedding-bg flex flex-col items-center justify-center px-6 overflow-hidden">
       <div className="w-full max-w-sm flex flex-col items-center text-center gap-5">
-        <span
-          className="material-symbols-rounded text-wedding-tertiary"
-          style={{ fontSize: '64px', lineHeight: 1 }}
-        >
-          favorite
-        </span>
-
         <div>
           <h1 className="font-serif text-3xl font-bold text-wedding-primary">
             {t('end.heading')}

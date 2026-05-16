@@ -1,5 +1,4 @@
 import { cache } from 'react'
-import { headers } from 'next/headers'
 import { prisma } from '@repo/db'
 import type { User } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
@@ -10,30 +9,9 @@ export type ActionResult<T = void> = T extends void
   ? { success: true; warning?: string } | { success: false; error: string }
   : { success: true; data: T; warning?: string } | { success: false; error: string }
 
-// Fast path: middleware already called getUser() and stamped x-user-id on the
-// forwarded request headers. We trust that verification and read the User from
-// the cookie via getSession() — a local cookie parse, no Supabase network call.
-//
-// Slow path (fallback): no header present, do a full getUser() verification.
-// This should only happen for routes middleware doesn't guard (shouldn't occur
-// in practice for dashboard routes).
-//
+// Reads the session from the cookie (local parse, no Supabase network call).
 // Wrapped in React cache() so multiple callers in one RSC render pay once.
 export const getAuthUser = cache(async (): Promise<User> => {
-  const headersList = await headers()
-  const middlewareUserId = headersList.get('x-user-id')
-
-  if (middlewareUserId) {
-    // Middleware already verified the JWT this request — read user from cookie
-    const supabase = await createClient()
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    if (!session?.user) throw new Error('Unauthorized')
-    return session.user
-  }
-
-  // Fallback: read session from cookie (consistent with middleware)
   const supabase = await createClient()
   const {
     data: { session },
