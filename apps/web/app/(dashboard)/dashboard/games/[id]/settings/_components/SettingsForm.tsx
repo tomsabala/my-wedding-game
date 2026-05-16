@@ -20,6 +20,7 @@ type Props = {
     coupleNames: string
     weddingDate: string
     tagline: string | null
+    welcomeMessage: string | null
   }
 }
 
@@ -43,12 +44,16 @@ export default function SettingsForm({ game }: Props) {
       coupleNames: game.coupleNames,
       weddingDate: game.weddingDate,
       tagline: game.tagline ?? '',
+      welcomeMessage: game.welcomeMessage ?? '',
     },
   })
 
   async function onSubmit(data: CreateGameInput) {
     setServerError(null)
-    const result = await updateGame(game.id, data)
+    const result = await updateGame(game.id, {
+      ...data,
+      welcomeMessage: data.welcomeMessage?.trim() || null,
+    })
     if (!result.success) {
       setServerError(result.error)
       return
@@ -123,6 +128,21 @@ export default function SettingsForm({ game }: Props) {
           />
           {errors.tagline && (
             <p className="text-xs text-destructive">{tForm('errors.taglineTooLong')}</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="welcomeMessage">{tForm('welcomeMessage')}</Label>
+          <textarea
+            id="welcomeMessage"
+            rows={3}
+            placeholder={tForm('welcomeMessagePlaceholder')}
+            aria-invalid={!!errors.welcomeMessage}
+            className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 resize-none aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20"
+            {...register('welcomeMessage')}
+          />
+          {errors.welcomeMessage && (
+            <p className="text-xs text-destructive">{tForm('errors.welcomeMessageTooLong')}</p>
           )}
         </div>
 

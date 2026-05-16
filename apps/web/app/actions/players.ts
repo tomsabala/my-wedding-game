@@ -11,6 +11,7 @@ export type PublicGame = {
   slug: string
   coupleNames: string
   tagline: string | null
+  welcomeMessage: string | null
   questionCount: number
   isLive: boolean
   funFact: string | null
@@ -24,6 +25,7 @@ export async function getPublicGame(slug: string): Promise<PublicGame | null> {
       slug: true,
       coupleNames: true,
       tagline: true,
+      welcomeMessage: true,
       status: true,
       _count: { select: { questions: true } },
       passingCards: {
@@ -42,6 +44,7 @@ export async function getPublicGame(slug: string): Promise<PublicGame | null> {
     slug: game.slug,
     coupleNames: game.coupleNames,
     tagline: game.tagline,
+    welcomeMessage: game.welcomeMessage,
     questionCount: game._count.questions,
     isLive: game.status === 'LIVE',
     funFact: game.passingCards[0]?.content ?? null,

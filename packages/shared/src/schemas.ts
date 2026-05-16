@@ -6,6 +6,7 @@ export const createGameSchema = z.object({
   coupleNames: z.string().min(1).max(100),
   weddingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
   tagline: z.string().max(200).nullable().optional(),
+  welcomeMessage: z.string().max(300).nullable().optional(),
 })
 
 export const questionSchema = z

@@ -25,8 +25,9 @@ model Game {
   slug         String     @unique
   coupleNames  String     @map("couple_names")
   weddingDate  DateTime   @map("wedding_date") @db.Date
-  tagline      String?
-  status       GameStatus @default(DRAFT)
+  tagline        String?
+  welcomeMessage String?  @map("welcome_message")
+  status         GameStatus @default(DRAFT)
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
