@@ -47,7 +47,7 @@ export default async function PlayerWelcomePage({ params }: Props) {
         <div className="w-full max-w-xl flex flex-col gap-4">
           {/* Join card */}
           <div className="rounded-2xl bg-wedding-surface border border-wedding-outline-variant p-6 shadow-sm">
-            <h2 className="text-base font-semibold text-wedding-on-surface">
+            <h2 className="text-base font-semibold text-wedding-on-surface whitespace-pre-wrap">
               {game.welcomeMessage ?? t('welcomeHeading', { coupleNames: game.coupleNames })}
             </h2>
 
