@@ -65,6 +65,7 @@ export async function getGame(id: string) {
         players: {
           select: { id: true, displayName: true, score: true, finishedAt: true, createdAt: true },
           orderBy: { createdAt: 'desc' },
+          take: 10,
         },
         _count: { select: { questions: true, players: true } },
       },

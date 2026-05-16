@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from '@repo/db'
-import { calculateQuestionScore, calculateTotalScore, type PassingCardType, type CardLayout } from '@repo/shared'
+import { type PassingCardType, type CardLayout } from '@repo/shared'
 import { revalidatePath, unstable_cache } from 'next/cache'
 
 import { type ActionResult } from '@/lib/actions'
@@ -18,37 +18,43 @@ export type PublicGame = {
 }
 
 export async function getPublicGame(slug: string): Promise<PublicGame | null> {
-  const game = await prisma.game.findUnique({
-    where: { slug },
-    select: {
-      id: true,
-      slug: true,
-      coupleNames: true,
-      tagline: true,
-      welcomeMessage: true,
-      status: true,
-      _count: { select: { questions: true } },
-      passingCards: {
-        where: { type: 'DID_YOU_KNOW' },
-        orderBy: { afterQuestionPosition: 'asc' },
-        take: 1,
-        select: { content: true },
-      },
+  return unstable_cache(
+    async () => {
+      const game = await prisma.game.findUnique({
+        where: { slug },
+        select: {
+          id: true,
+          slug: true,
+          coupleNames: true,
+          tagline: true,
+          welcomeMessage: true,
+          status: true,
+          _count: { select: { questions: true } },
+          passingCards: {
+            where: { type: 'DID_YOU_KNOW' },
+            orderBy: { afterQuestionPosition: 'asc' },
+            take: 1,
+            select: { content: true },
+          },
+        },
+      })
+
+      if (!game) return null
+
+      return {
+        id: game.id,
+        slug: game.slug,
+        coupleNames: game.coupleNames,
+        tagline: game.tagline,
+        welcomeMessage: game.welcomeMessage,
+        questionCount: game._count.questions,
+        isLive: game.status === 'LIVE',
+        funFact: game.passingCards[0]?.content ?? null,
+      }
     },
-  })
-
-  if (!game) return null
-
-  return {
-    id: game.id,
-    slug: game.slug,
-    coupleNames: game.coupleNames,
-    tagline: game.tagline,
-    welcomeMessage: game.welcomeMessage,
-    questionCount: game._count.questions,
-    isLive: game.status === 'LIVE',
-    funFact: game.passingCards[0]?.content ?? null,
-  }
+    [`public-game-${slug}`],
+    { tags: [`game-for-play-${slug}`], revalidate: 60 },
+  )()
 }
 
 export async function joinGame(
@@ -175,7 +181,7 @@ export async function getPassingCard(slug: string, cardId: string) {
     id: card.id,
     type: card.type as PassingCardType,
     content: card.content,
-    layout: card.layout as import('@repo/shared').CardLayout | null,
+    layout: card.layout as CardLayout | null,
     afterQuestionPosition: card.afterQuestionPosition,
   }
 }
@@ -184,36 +190,22 @@ export async function submitAnswer(data: {
   playerId: string
   questionId: string
   selectedIndex: number
+  isCorrect: boolean
   timeTakenMs: number
-}): Promise<ActionResult<{ isCorrect: boolean; questionScore: number; correctIndex: number }>> {
-  const question = await prisma.question.findUnique({
-    where: { id: data.questionId },
-    select: { id: true, correctIndex: true },
-  })
-  if (!question) return { success: false, error: 'שאלה לא נמצאה' }
-
-  const isCorrect = data.selectedIndex === question.correctIndex
-  const questionScore = calculateQuestionScore(isCorrect, data.timeTakenMs)
-
+}): Promise<ActionResult> {
   await prisma.playerAnswer.create({
     data: {
       playerId: data.playerId,
       questionId: data.questionId,
       selectedIndex: data.selectedIndex,
-      isCorrect,
+      isCorrect: data.isCorrect,
       timeTakenMs: data.timeTakenMs,
     },
   })
-
-  return { success: true, data: { isCorrect, questionScore, correctIndex: question.correctIndex } }
+  return { success: true }
 }
 
-export async function finishGame(playerId: string): Promise<ActionResult> {
-  const answers = await prisma.playerAnswer.findMany({
-    where: { playerId },
-    select: { isCorrect: true, timeTakenMs: true },
-  })
-  const score = calculateTotalScore(answers)
+export async function finishGame(playerId: string, score: number): Promise<ActionResult> {
   // updateMany with finishedAt: null guard is a no-op if already finished
   await prisma.player.updateMany({
     where: { id: playerId, finishedAt: null },
@@ -232,31 +224,35 @@ export type LeaderboardEntry = {
 export async function getLeaderboard(
   slug: string,
 ): Promise<{ gameId: string; coupleNames: string; players: LeaderboardEntry[] } | null> {
-  const game = await prisma.game.findUnique({
-    where: { slug },
-    select: { id: true, coupleNames: true, status: true },
-  })
-
-  if (!game || game.status !== 'LIVE') return null
-
-  // Single GROUP BY query — one row per player instead of fetching all answer rows
   const rows = await prisma.$queryRaw<
-    { id: string; display_name: string; correct_count: bigint; total_time_ms: bigint }[]
+    { id: string; display_name: string; correct_count: bigint; total_time_ms: bigint; game_id: string; couple_names: string }[]
   >`
     SELECT p.id,
            p.display_name,
+           p.game_id,
+           g.couple_names,
            COUNT(CASE WHEN pa.is_correct THEN 1 END) AS correct_count,
            COALESCE(SUM(pa.time_taken_ms), 0)        AS total_time_ms
     FROM   players p
+    JOIN   games g ON g.id = p.game_id
     LEFT JOIN player_answers pa ON pa.player_id = p.id
-    WHERE  p.game_id = ${game.id}
-    GROUP  BY p.id, p.display_name
+    WHERE  g.slug = ${slug} AND g.status = 'LIVE'
+    GROUP  BY p.id, p.display_name, p.game_id, g.couple_names
     ORDER  BY correct_count DESC, total_time_ms ASC
   `
 
+  if (rows.length === 0) {
+    const game = await prisma.game.findUnique({
+      where: { slug },
+      select: { id: true, coupleNames: true, status: true },
+    })
+    if (!game || game.status !== 'LIVE') return null
+    return { gameId: game.id, coupleNames: game.coupleNames, players: [] }
+  }
+
   return {
-    gameId: game.id,
-    coupleNames: game.coupleNames,
+    gameId: rows[0]!.game_id,
+    coupleNames: rows[0]!.couple_names,
     players: rows.map((r) => ({
       id: r.id,
       displayName: r.display_name,
