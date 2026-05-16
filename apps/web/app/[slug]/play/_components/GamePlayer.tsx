@@ -496,13 +496,6 @@ function EndScreen({
   return (
     <main dir="rtl" className="fixed inset-0 bg-wedding-bg flex flex-col items-center justify-center px-6 overflow-hidden">
       <div className="w-full max-w-sm flex flex-col items-center text-center gap-5">
-        <span
-          className="material-symbols-rounded text-wedding-tertiary"
-          style={{ fontSize: '64px', lineHeight: 1 }}
-        >
-          favorite
-        </span>
-
         <div>
           <h1 className="font-serif text-3xl font-bold text-wedding-primary">
             {t('end.heading')}
