@@ -93,6 +93,7 @@ export type PlayGame = {
   gameId: string
   slug: string
   coupleNames: string
+  endMessage: string | null
   questions: {
     id: string
     text: string
@@ -117,6 +118,7 @@ export const getGameForPlay = unstable_cache(
         id: true,
         slug: true,
         coupleNames: true,
+        endMessage: true,
         status: true,
         questions: {
           orderBy: { position: 'asc' },
@@ -140,6 +142,7 @@ export const getGameForPlay = unstable_cache(
       gameId: game.id,
       slug: game.slug,
       coupleNames: game.coupleNames,
+      endMessage: game.endMessage,
       questions: game.questions.map((q) => ({
         id: q.id,
         text: q.text,

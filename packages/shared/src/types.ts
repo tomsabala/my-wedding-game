@@ -63,6 +63,7 @@ export interface Game {
   weddingDate: string
   tagline: string | null
   welcomeMessage: string | null
+  endMessage: string | null
   status: GameStatus
   createdAt: string
   updatedAt: string

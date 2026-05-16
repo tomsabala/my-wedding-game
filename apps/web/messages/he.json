@@ -109,12 +109,15 @@
       "taglinePlaceholder": "משהו קצר ומרגש...",
       "welcomeMessage": "הודעת פתיחה למשתתפים (אופציונלי)",
       "welcomeMessagePlaceholder": "ברוכים הבאים למשחק הטריוויה שלנו!",
+      "endMessage": "הודעת סיום למשתתפים (אופציונלי)",
+      "endMessagePlaceholder": "תודה שהייתם כאן איתנו...",
       "submit": "צור משחק",
       "errors": {
         "coupleNamesRequired": "שם הזוג הוא שדה חובה",
         "weddingDateRequired": "תאריך החתונה הוא שדה חובה",
         "taglineTooLong": "התגית ארוכה מדי",
-        "welcomeMessageTooLong": "הודעת הפתיחה ארוכה מדי"
+        "welcomeMessageTooLong": "הודעת הפתיחה ארוכה מדי",
+        "endMessageTooLong": "הודעת הסיום ארוכה מדי"
       }
     },
     "preview": {

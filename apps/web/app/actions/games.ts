@@ -100,7 +100,7 @@ export async function getGameForSettings(id: string) {
   const game = await unstable_cache(
     async () => prisma.game.findUnique({
       where: { id },
-      select: { id: true, userId: true, coupleNames: true, weddingDate: true, tagline: true, welcomeMessage: true },
+      select: { id: true, userId: true, coupleNames: true, weddingDate: true, tagline: true, welcomeMessage: true, endMessage: true },
     }),
     [`game-settings-${user.id}-${id}`],
     { tags: [`game-${id}`] },
@@ -112,6 +112,7 @@ export async function getGameForSettings(id: string) {
     weddingDate: new Date(game.weddingDate).toISOString().split('T')[0]!,
     tagline: game.tagline,
     welcomeMessage: game.welcomeMessage,
+    endMessage: game.endMessage,
   }
 }
 
@@ -230,7 +231,7 @@ export async function updateGame(
   const existing = await prisma.game.findUnique({ where: { id } })
   if (!existing || existing.userId !== user.id) notFound()
 
-  const { coupleNames, weddingDate, tagline, welcomeMessage } = parsed.data
+  const { coupleNames, weddingDate, tagline, welcomeMessage, endMessage } = parsed.data
 
   await prisma.game.update({
     where: { id, userId: user.id },
@@ -239,6 +240,7 @@ export async function updateGame(
       weddingDate: new Date(weddingDate),
       tagline: tagline ?? null,
       welcomeMessage: welcomeMessage ?? null,
+      endMessage: endMessage ?? null,
     },
   })
 

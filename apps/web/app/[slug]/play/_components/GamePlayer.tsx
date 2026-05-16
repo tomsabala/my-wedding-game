@@ -217,6 +217,7 @@ function ActiveGame({ game, bootstrap }: { game: PlayGame; bootstrap: Bootstrap 
       <EndScreen
         playerName={bootstrap.player.displayName}
         coupleNames={game.coupleNames}
+        endMessage={game.endMessage}
         totalScore={finished.totalScore}
         correctCount={finished.correctCount}
         totalQuestions={game.questions.length}
@@ -488,12 +489,14 @@ function QuestionRound({
 function EndScreen({
   playerName,
   coupleNames,
+  endMessage,
   totalScore,
   correctCount,
   totalQuestions,
 }: {
   playerName: string
   coupleNames: string
+  endMessage: string | null
   totalScore: number
   correctCount: number
   totalQuestions: number
@@ -527,7 +530,14 @@ function EndScreen({
 
         <div className="rounded-2xl bg-wedding-primary-container/50 border border-wedding-outline-variant p-5 w-full">
           <p className="font-serif text-base text-wedding-on-surface leading-relaxed">
-            {t('end.thankYou')}
+            {endMessage
+              ? endMessage.split('\n').map((line, i, arr) => (
+                  <span key={i}>
+                    {line}
+                    {i < arr.length - 1 && <br />}
+                  </span>
+                ))
+              : t('end.thankYou')}
           </p>
           <p className="mt-3 text-sm font-semibold text-wedding-primary">— {coupleNames}</p>
         </div>
