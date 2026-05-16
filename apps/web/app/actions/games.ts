@@ -246,6 +246,7 @@ export async function updateGame(
 
   revalidateTag(`game-${id}`, 'default')
   revalidateTag(`games-${user.id}`, 'default')
+  revalidateTag(`game-for-play-${existing.slug}`, 'default')
   revalidatePath('/dashboard')
   revalidatePath(`/dashboard/games/${id}`)
   revalidatePath(`/dashboard/games/${id}/settings`)
